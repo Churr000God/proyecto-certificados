@@ -5,6 +5,19 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.0] - 2026-01-28
+
+### Mejoras
+- **Frontend**:
+    - Optimización completa del componente `nav_bar.html`:
+        - Estructura semántica mejorada y soporte para accesibilidad.
+        - Implementación de lógica de logo híbrido (imagen/texto).
+        - Centrado inteligente del título de marca.
+    - Actualización de estilos en `nav_bar.css`:
+        - Diseño totalmente responsive con menú hamburguesa (preparado).
+        - Estilos modernos para el título y botón CTA.
+        - Ajustes de Flexbox para una distribución equilibrada en móviles y escritorio.
+
 ## [1.0.0] - 2026-01-28
 
 ### Agregado

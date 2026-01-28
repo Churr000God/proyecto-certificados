@@ -1,32 +1,47 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+:root {
+    --primary-color: #061e29;
+    --secondary-color: #5f9598;
+    --accent-color: #70a4a7;
+    --text-color: #333333;
+    --white-color: #ffffff;
+    --light-color: #04bebe;
+    --bg-color: #f4f4f4;
 }
 
-.container {
-    background: white;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* El contenido principal empuja el footer hacia abajo */
+main.container {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 2rem auto;
     padding: 2rem;
+    background: var(--white-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: center;
+    box-sizing: border-box;
 }
 
 button {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--secondary-color);
+    color: var(--white-color);
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: var(--light-color);
 }
