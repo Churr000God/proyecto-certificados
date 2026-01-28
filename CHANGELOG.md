@@ -5,6 +5,14 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.1] - 2026-01-28
+
+### Documentación
+- Agregado `CONTRIBUTING.md` con:
+    - Guía de flujo de trabajo (Git Flow simplificado).
+    - Convenciones de nomenclatura de ramas y commits (Semantic Commits).
+    - Instrucciones para reporte de bugs y Pull Requests.
+
 ## [1.1.0] - 2026-01-28
 
 ### Mejoras
