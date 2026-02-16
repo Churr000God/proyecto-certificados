@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-02-16
+
+### Agregado
+- **Frontend (Landing):** Sección hero en `views/index.html` con:
+  - Título y copy principal.
+  - Botón CTA “Regala un Certificado”.
+  - Banda de beneficios (Deducible, Entrega Digital, Impacto Real).
+
+### Cambiado
+- **Estilos:** Ampliación de `assets/style.css` para soportar el hero (layout grid, CTA, banda de beneficios y responsivo).
+
+### Notas
+- La imagen del hero se referencia como `frontend/assets/hero-estudiante.jpg`. Si no existe, se mostrará únicamente el degradado.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación
