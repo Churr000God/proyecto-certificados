@@ -59,6 +59,7 @@ main.hero-page {
     min-height: 70vh;
     background-color: var(--primary-color);
     color: var(--white-color);
+    background-image: url("../assets/img/img-principal.png");
 }
 
 .hero-text {
@@ -102,19 +103,13 @@ main.hero-page {
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
-.hero-image {
-    background-image: linear-gradient(90deg, rgba(6, 30, 41, 0.35), rgba(6, 30, 41, 0.05)), url("../assets/hero-estudiante.jpg");
-    background-size: cover;
-    background-position: center;
-}
-
 .hero-benefits {
     display: flex;
     justify-content: center;
     align-items: stretch;
     gap: 3rem;
     padding: 1.5rem 3rem;
-    background-color: #031118;
+    background-color: var(--primary-color);
     color: var(--white-color);
 }
 

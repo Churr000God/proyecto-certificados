@@ -24,11 +24,15 @@
     color: var(--white-color);
 }
 
+
 .logo-img {
-    height: 40px;
-    width: auto;
-    object-fit: contain;
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 3px;
 }
+
+
 
 .logo-text {
     font-size: 1.2rem;
