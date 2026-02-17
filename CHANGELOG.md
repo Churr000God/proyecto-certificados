@@ -38,6 +38,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Notas
 - Las rutas de imágenes por causa se declaran en el objeto `designs` dentro de `views/index.html`. Se pueden actualizar sin tocar el HTML estructural.
 
+## [1.4.0] - 2026-02-17
+
+### Agregado
+- **Frontend (¿Cómo Funciona?):** Nueva sección con timeline interactivo en `views/index.html`:
+  - Tres pasos con círculos que se rellenan progresivamente.
+  - Barra de progreso detrás de los pasos con animación suave.
+  - Diseño responsive: en móvil los pasos se apilan con layout accesible.
+
+### Cambiado
+- **Estilos:** Añadido bloque “Cómo Funciona” en `assets/style.css`:
+  - Gestión de capas (`z-index`) para evitar que la línea atraviese los círculos.
+  - Pseudo-elemento de relleno en los círculos (`.how__dot::before`) y números siempre blancos.
+- **Refactor Frontend:** Scripts extraídos de `index.html` a archivos dedicados:
+  - `frontend/js/causas-interactivo.js` (lógica de “Elige tu Causa”).
+  - `frontend/js/how-timeline.js` (interacción del timeline).
+  - Inclusión con `defer` al final del `body` para mejor carga.
+
+### Notas
+- La inicialización de cada script es segura: no falla si la sección no está presente en la página.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación
