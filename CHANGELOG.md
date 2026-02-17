@@ -58,6 +58,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Notas
 - La inicialización de cada script es segura: no falla si la sección no está presente en la página.
 
+## [1.5.0] - 2026-02-17
+
+### Agregado
+- **Frontend (Causas – menú local):**
+  - Persistencia de configuración de causas en `localStorage` bajo la clave `menu_config`.
+  - Estructura alineada a la base de datos (`brand_id`, `cause_id`, nombres y descripciones).
+  - Carga inicial por marca basada en la selección de institución (Tecmilenio, Tec y TecSalud).
+- **Frontend (Causas – íconos):**
+  - Generación dinámica de los círculos de la sección de íconos en función de las causas disponibles por institución.
+  - Tooltips flotantes sobre cada círculo indicando el nombre de la causa.
+  - Carrusel horizontal automático cuando hay más de 4 causas, con desplazamiento infinito y velocidad suave.
+- **Backend (Esquema):**
+  - Módulo de esquema en `backend/src/db/schema.js` con nombres de tablas, columnas y enums (`payment_status`, `recipient_type`, `group_category`).
+
+### Cambiado
+- **Estilos:** Ajustes en `assets/style.css` para:
+  - Habilitar contenedor de íconos como carrusel (`.cause__icons--scrollable`) con scrollbar sutil.
+  - Agregar tooltips (`.cause__tooltip`) a los círculos de causas.
+- **Frontend:** `frontend/js/causas-interactivo.js` ahora:
+  - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
+  - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación

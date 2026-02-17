@@ -260,10 +260,30 @@ main.hero-page {
 }
 
 /* Íconos */
-.cause__icons{ /* Contenedor horizontal de los iconos/badges */
-  display: flex; /* Usa flexbox para alinearlos en fila */
-  gap: 14px; /* Espacio uniforme entre iconos */
-  margin-top: 18px; /* Separación respecto al texto superior */
+.cause__icons{
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+  overflow: hidden;
+}
+
+.cause__icons--scrollable{
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 6px;
+}
+
+.cause__icons--scrollable::-webkit-scrollbar{
+  height: 4px;
+}
+
+.cause__icons--scrollable::-webkit-scrollbar-track{
+  background: transparent;
+}
+
+.cause__icons--scrollable::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.25);
+  border-radius: 999px;
 }
 
 .cause__icon{ /* Tarjeta circular de cada icono */
@@ -283,6 +303,31 @@ main.hero-page {
   object-fit: contain; /* Mantiene la proporción sin recortar */
   filter: brightness(0) invert(1); /* Convierte el icono a blanco para que resalte */
   opacity: .95; /* Ligeramente translúcido para suavizar */
+}
+
+.cause__icon{
+  position: relative;
+}
+
+.cause__tooltip{
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, 0);
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0,0,0,.85);
+  color: #ffffff;
+  font-size: .8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.cause__icon:hover .cause__tooltip{
+  opacity: 1;
+  transform: translate(-50%, -6px);
 }
 
 /* ===== Media (imagen) ===== */
