@@ -6,6 +6,12 @@
     --white-color: #ffffff;
     --light-color: #04bebe;
     --bg-color: #f4f4f4;
+    /* Variables usadas por el bloque cause__* */
+    --bg: #0b2a36;            /* Fondo del panel izquierdo */
+    --bg2: #0a2230;           /* Degradado inferior del panel izquierdo */
+    --text: #ffffff;          /* Texto principal en panel */
+    --muted: rgba(255,255,255,0.92); /* Texto secundario en panel */
+    --accent: var(--secondary-color); /* Subrayado del encabezado */
 }
 
 body {
@@ -179,4 +185,217 @@ main.hero-page {
         width: 100%;
         text-align: center;
     }
+}
+/* ===== Sección ===== */ /* Marca visual de inicio de la sección */
+
+.cause__container{ /* Contenedor general de la sección */
+  width: 100%; /* Ocupar todo el ancho disponible */
+  margin: 0 auto; /* Centrar el contenido cuando haya un ancho máximo */
+}
+
+/* ===== Header ===== */ /* Estilos del encabezado de la sección */
+.cause__header{ /* Contenedor del título y subrayado */
+  text-align: center; /* Centra el texto horizontalmente */
+  margin-bottom: 18px; /* Deja espacio debajo del encabezado */
+}
+
+.cause__header h2{ /* Título principal de la sección */
+  margin: 0; /* Elimina márgenes por defecto del h2 */
+  font-size: clamp(1.4rem, 2vw, 2rem); /* Tamaño fluido entre 1.4 y 2 rem según ancho de pantalla */
+  font-weight: 800; /* Título en negrita fuerte */
+  color: var(--text-color); /* Usa el color de texto definido en variables */
+  letter-spacing: .2px; /* Ligero espaciado entre letras */
+}
+
+.cause__underline{ /* Rayita decorativa bajo el título */
+  display: inline-block; /* Permite ancho/alto sin ser bloque completo */
+  width: 68px; /* Largo de la línea */
+  height: 6px; /* Grosor de la línea */
+  margin-top: 10px; /* Separación respecto al título */
+  border-radius: 999px; /* Extremo totalmente redondeado (pastilla) */
+  background: var(--accent); /* Color de acento definido en variables */
+}
+
+/* ===== Card layout ===== */ /* Tarjeta que agrupa panel, imagen y logos */
+.cause__card{ /* Contenedor principal de la tarjeta */
+  position: relative; /* Referencia para posicionar hijos absolutos si hace falta */
+  display: grid; /* Usa CSS Grid para el layout interno */
+  grid-template-columns: 1.1fr 1.4fr 112px; /* Tres columnas: panel, imagen y columna de logos */
+  align-items: stretch; /* Hace que las filas se estiren a la misma altura */
+  overflow: hidden; /* Recorta todo lo que sobresalga (respetando el radio) */
+  box-shadow: 0 16px 35px rgba(0,0,0,.12); /* Sombra suave para efecto de tarjeta flotante */
+  background: black; /* Color de fondo base de la tarjeta */
+}
+
+/* ===== Left panel ===== */ /* Columna izquierda con texto y badges */
+.cause__left{ /* Panel de información de la causa */
+  padding: 28px 26px; /* Espacio interno alrededor del contenido */
+  background: linear-gradient(180deg, var(--bg), var(--bg2)); /* Degradado vertical de fondo */
+  color: var(--text); /* Color de texto para este panel */
+  position: relative; /* Necesario para posicionar el pseudo-elemento ::after */
+  -webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); /* Compatibilidad WebKit */
+  clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); /* Borde derecho diagonal */
+  will-change: clip-path; /* Optimiza el render para esta propiedad */
+  transition: transform .4s ease, opacity .35s ease; /* Transición suave para animaciones */
+}
+
+
+
+
+.cause__brand{ /* Título de la causa (ej. TECMILENIO) */
+  margin: 0 0 10px; /* Solo deja espacio abajo del título */
+  font-size: 3rem; /* Tamaño grande del nombre de la causa */
+  letter-spacing: .6px; /* Más espacio entre letras para un look “branding” */
+  font-weight: 900; /* Extra negrita para destacar */
+  color: rgba(120, 205, 198, .75); /* Color turquesa semitransparente similar al diseño */
+  text-transform: uppercase; /* Convierte el texto a mayúsculas */
+}
+
+.cause__text{ /* Párrafo descriptivo de la causa */
+  margin: 0 0 18px; /* Margen inferior para separar de los iconos */
+  color: var(--muted); /* Usa un color de texto suavizado */
+  line-height: 1.55; /* Aumenta interlineado para mejor lectura */
+  font-size: 1.4rem; /* Un poco más grande que el texto base */
+  max-width: 34ch; /* Limita el ancho a ~34 caracteres (bloque muy legible) */
+}
+
+/* Íconos */
+.cause__icons{ /* Contenedor horizontal de los iconos/badges */
+  display: flex; /* Usa flexbox para alinearlos en fila */
+  gap: 14px; /* Espacio uniforme entre iconos */
+  margin-top: 18px; /* Separación respecto al texto superior */
+}
+
+.cause__icon{ /* Tarjeta circular de cada icono */
+  width: 80px; /* Diámetro del círculo */
+  height: 80px; /* Igual que el ancho para que sea redondo */
+  border-radius: 999px; /* Hace el elemento completamente circular */
+  display: grid; /* Grid para centrar el contenido fácilmente */
+  place-items: center; /* Centra el contenido en ambos ejes */
+  background: rgba(255,255,255,.12); /* Fondo blanco semitransparente (efecto glass) */
+  border: 1px solid rgba(255,255,255,.16); /* Borde blanco muy suave */
+  backdrop-filter: blur(3px); /* Desenfoca el fondo que se ve detrás del icono */
+}
+
+.cause__icon img{ /* Imagen dentro del icono circular */
+  width: 34px; /* Ancho de la imagen/icono */
+  height: 34px; /* Alto de la imagen/icono */
+  object-fit: contain; /* Mantiene la proporción sin recortar */
+  filter: brightness(0) invert(1); /* Convierte el icono a blanco para que resalte */
+  opacity: .95; /* Ligeramente translúcido para suavizar */
+}
+
+/* ===== Media (imagen) ===== */
+.cause__media{ /* Contenedor de la imagen principal */
+  position: relative; /* Por si se agregan overlays o elementos absolutos encima */
+  background: black; /* Fondo oscuro por detrás de la imagen */
+  z-index: 0; /* Asegura que quede por debajo del panel con clip-path */
+  transition: transform .4s ease, opacity .35s ease; /* Transición para efecto deslizante */
+}
+
+.cause__media::after { /* Degradado negro de izquierda a derecha sobre la foto */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.0) 65%, rgba(0,0,0,0) 100%);
+}
+
+.cause__media img{ /* Imagen de la causa (foto) */
+  width: 100%; /* Ocupa todo el ancho de su columna */
+  height: 100%; /* Ocupa toda la altura disponible */
+  display: block; /* Evita espacios inferiores por comportamiento inline de <img> */
+  object-fit: cover; /* Rellena el contenedor recortando lo que sobre */
+}
+
+/* ===== Logos right ===== */
+.cause__logos{ /* Columna derecha con los logos/redondeles */
+  display: grid; /* Grid para colocar los logos en filas */
+  grid-template-rows: repeat(3, 1fr); /* Tres filas de igual altura (un logo por fila) */
+  gap: 14px; /* Separación entre filas/logos */
+  padding: 16px 14px; /* Relleno interior de la columna */
+  background: #f8f8f8; /* Fondo claro para contrastar con la parte central */
+  align-content: center; /* Centra el grupo de filas dentro de la columna */
+  justify-items: center; /* Centra cada logo horizontalmente */
+}
+
+.cause__logo{ /* Cada logo circular de la columna derecha */
+  width: 74px; /* Diámetro del círculo */
+  height: 74px; /* Igual que el ancho */
+  border-radius: 999px; /* Logro forma circular completa */
+  background: #dfeff0; /* Fondo azul claro / grisáceo */
+  border: 2px solid rgba(0,0,0,.08); /* Borde gris muy sutil */
+  display: grid; /* Grid para centrar el contenido */
+  place-items: center; /* Centra el logo dentro del círculo */
+  overflow: hidden; /* Recorta lo que se salga del círculo */
+  transition: transform .18s ease, box-shadow .18s ease; /* Anima movimiento y sombra al hacer hover */
+}
+
+.cause__logo:hover{ /* Estado al pasar el mouse sobre el logo */
+  transform: translateY(-2px) scale(1.02); /* Lo levanta ligeramente y lo agranda un poco */
+  box-shadow: 0 12px 22px rgba(0,0,0,.12); /* Aumenta sombra para enfatizar el efecto flotante */
+}
+
+.cause__logo img{ /* Imagen/escudo dentro del logo circular */
+  width: 86%; /* Ocupa más del diámetro para verse más grande */
+  height: 86%; /* Igual que el ancho para mantener proporción */
+  object-fit: contain; /* Ajusta la imagen sin recortar */
+}
+
+.cause__logo--active{ /* Estado activo según la causa seleccionada */
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 16px 28px rgba(0,0,0,.2);
+  border-color: rgba(0,0,0,.28);
+}
+
+.cause__left--tecmilenio{
+  --bg: #0b2a36;
+  --bg2: #0a2230;
+}
+
+.cause__left--tecsalud{
+  --bg: #16304a;
+  --bg2: #101f33;
+}
+
+.cause__left--tec{
+  --bg: #003b49;
+  --bg2: #012831;
+}
+
+.cause__card--changing .cause__left,
+.cause__card--changing .cause__media{
+  transform: translateX(-32px); /* Se desplaza ligeramente hacia la izquierda */
+  opacity: 0; /* Se desvanece para simular que se cierra */
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 980px){ /* Reglas para pantallas menores o iguales a 980px */
+  .cause__card{
+    grid-template-columns: 1fr; /* La tarjeta pasa a una sola columna (todo en vertical) */
+  }
+
+  .cause__left::after{ display:none; } /* Se oculta el corte diagonal en layouts pequeños */
+
+  .cause__logos{
+    grid-template-rows: none; /* Se elimina la configuración de filas */
+    grid-template-columns: repeat(3, 1fr); /* Los logos se colocan ahora en fila (3 columnas) */
+    padding: 14px; /* Ajusta el padding para esta vista */
+  }
+
+  .cause__media{
+    height: 320px; /* Fija una altura para la imagen en columna única */
+  }
+
+  .cause__text{
+    max-width: none; /* Permite que el texto use todo el ancho disponible */
+  }
+}
+
+@media (max-width: 520px){ /* Reglas adicionales para móviles más pequeños */
+  .cause__media{ height: 240px; } /* Reduce aún más la altura de la imagen */
+
+  .cause__icons{
+    flex-wrap: wrap; /* Permite que los iconos bajen a otra fila si no caben en una sola */
+  }
 }
