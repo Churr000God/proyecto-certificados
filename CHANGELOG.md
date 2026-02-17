@@ -19,6 +19,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Notas
 - La imagen del hero se referencia como `frontend/assets/hero-estudiante.jpg`. Si no existe, se mostrará únicamente el degradado.
 
+## [1.3.0] - 2026-02-17
+
+### Agregado
+- **Frontend (Causas):** Tarjeta “Elige tu Causa” interactiva en `views/index.html`:
+  - Cambio dinámico de marca, texto, íconos y foto al seleccionar botón lateral.
+  - Animación horizontal (cierre/apertura) al cambiar de causa.
+  - Degradado negro sobre la imagen de izquierda a derecha para mejorar contraste.
+
+### Cambiado
+- **UI:** Los logos laterales ahora son botones accesibles (`button.cause__logo`) con estado activo.
+- **Estilos:** Mejoras en `assets/style.css`:
+  - Panel izquierdo con `clip-path` diagonal y soporte `-webkit-clip-path`.
+  - Transiciones para panel e imagen, y clase `cause__card--changing` para animación.
+  - Variables CSS añadidas en `:root` para fondos y textos del panel (`--bg`, `--bg2`, `--text`, `--muted`, `--accent`).
+  - Íconos tipo “glass” y logos con imágenes internas más grandes.
+
+### Notas
+- Las rutas de imágenes por causa se declaran en el objeto `designs` dentro de `views/index.html`. Se pueden actualizar sin tocar el HTML estructural.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación
