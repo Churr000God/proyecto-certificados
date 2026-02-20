@@ -221,6 +221,11 @@ document.addEventListener("DOMContentLoaded", function () {
     var iconsContainer = card.querySelector(".cause__icons");
     if (!iconsContainer) return;
     iconsContainer.innerHTML = "";
+    var currentSelectedRaw = localStorage.getItem("selected_cause");
+    var currentSelected = null;
+    try {
+      currentSelected = currentSelectedRaw ? JSON.parse(currentSelectedRaw) : null;
+    } catch (e) {}
     causes.forEach(function (cause, index) {
       if (cause.is_placeholder) return;
       var sprite = getIconSprite(index);
@@ -240,6 +245,27 @@ document.addEventListener("DOMContentLoaded", function () {
       wrapper.appendChild(img);
       wrapper.appendChild(tooltip);
       iconsContainer.appendChild(wrapper);
+
+      if (currentSelected && currentSelected.cause_id === cause.cause_id) {
+        wrapper.classList.add("cause__icon--active");
+      }
+
+      wrapper.addEventListener("click", function () {
+        var payload = {
+          cause_id: cause.cause_id,
+          brand_id: cause.brand_id,
+          cause_name: cause.cause_name
+        };
+        try {
+          localStorage.setItem("selected_cause", JSON.stringify(payload));
+        } catch (e) {}
+        iconsContainer.querySelectorAll(".cause__icon").forEach(function (el) {
+          el.classList.remove("cause__icon--active");
+        });
+        wrapper.classList.add("cause__icon--active");
+        var err = card.querySelector(".cause__error");
+        if (err) err.remove();
+      });
     });
 
     var iconCount = iconsContainer.children.length;
@@ -266,6 +292,40 @@ document.addEventListener("DOMContentLoaded", function () {
         iconsContainer.scrollLeft += 1;
       }, 100);
     }
+  }
+
+  function ensureCtaRequiresSelection() {
+    document.addEventListener(
+      "click",
+      function (evt) {
+        var a = evt.target.closest("a");
+        if (!a) return;
+        var href = a.getAttribute("href") || "";
+        if (!/generar_certificado\.html(\?|#|$)/.test(href)) return;
+        var selected = null;
+        try {
+          selected = JSON.parse(localStorage.getItem("selected_cause") || "null");
+        } catch (e) {}
+        if (!selected || !selected.cause_id) {
+          evt.preventDefault();
+          var causesSection = document.querySelector("#causas");
+          if (causesSection) {
+            causesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+          var existing = card.querySelector(".cause__error");
+          if (!existing) {
+            var msg = document.createElement("div");
+            msg.className = "cause__error";
+            msg.textContent = "Por favor, selecciona una causa para continuar.";
+            var leftPane = card.querySelector(".cause__left");
+            if (leftPane) {
+              leftPane.insertBefore(msg, leftPane.querySelector(".cause__icons"));
+            }
+          }
+        }
+      },
+      true
+    );
   }
 
   var designs = {
@@ -380,4 +440,5 @@ document.addEventListener("DOMContentLoaded", function () {
   applyDesign("tecmilenio");
   saveMenuConfigForBrand("tecmilenio");
   renderCauseIconsForBrand("tecmilenio");
+  ensureCtaRequiresSelection();
 });

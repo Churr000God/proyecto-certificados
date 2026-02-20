@@ -80,6 +80,30 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.6.0] - 2026-02-20
+
+### Agregado
+- **Frontend (Flujo de donación):**
+  - Nueva página `frontend/views/elige_donante.html` que actúa como paso intermedio antes de diseñar el certificado.
+  - Selector de tipo de donación con dos opciones:
+    - “Donar como Persona” (`donor_type = "individual"`).
+    - “Donar como Empresa” (`donor_type = "corporate"`).
+  - Script `frontend/js/elige-donante.js` que:
+    - Valida que exista una causa seleccionada (`selected_cause`) en `localStorage`.  
+    - Redirige de vuelta a `index.html#causas` si el usuario intenta entrar sin haber elegido causa.
+    - Guarda el `donor_type` en `localStorage` y redirige a `generar_certificado.html` según la opción seleccionada.
+- **Frontend (Navegación):**
+  - Actualización de los CTAs “Regala un Certificado” en:
+    - `frontend/views/index.html` (hero principal).
+    - `frontend/components/nav_bar.html` (botón del menú).
+  - Ambos ahora apuntan a `views/elige_donante.html` manteniendo la validación previa de causa con `selected_cause`.
+
+### Cambiado
+- **Estilos:** Ampliación de `assets/style.css` para:
+  - Nuevo layout `.donor` y `.donor__grid` con dos columnas (individual y corporativa).
+  - Fondo con imagen a pantalla parcial, degradado y contenido centrado en `.donor__content`.
+  - Botones `.donor__cta` con estilo de pastilla y hover con sombra.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación
