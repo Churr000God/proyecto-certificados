@@ -38,6 +38,72 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### Notas
 - Las rutas de imágenes por causa se declaran en el objeto `designs` dentro de `views/index.html`. Se pueden actualizar sin tocar el HTML estructural.
 
+## [1.4.0] - 2026-02-17
+
+### Agregado
+- **Frontend (¿Cómo Funciona?):** Nueva sección con timeline interactivo en `views/index.html`:
+  - Tres pasos con círculos que se rellenan progresivamente.
+  - Barra de progreso detrás de los pasos con animación suave.
+  - Diseño responsive: en móvil los pasos se apilan con layout accesible.
+
+### Cambiado
+- **Estilos:** Añadido bloque “Cómo Funciona” en `assets/style.css`:
+  - Gestión de capas (`z-index`) para evitar que la línea atraviese los círculos.
+  - Pseudo-elemento de relleno en los círculos (`.how__dot::before`) y números siempre blancos.
+- **Refactor Frontend:** Scripts extraídos de `index.html` a archivos dedicados:
+  - `frontend/js/causas-interactivo.js` (lógica de “Elige tu Causa”).
+  - `frontend/js/how-timeline.js` (interacción del timeline).
+  - Inclusión con `defer` al final del `body` para mejor carga.
+
+### Notas
+- La inicialización de cada script es segura: no falla si la sección no está presente en la página.
+
+## [1.5.0] - 2026-02-17
+
+### Agregado
+- **Frontend (Causas – menú local):**
+  - Persistencia de configuración de causas en `localStorage` bajo la clave `menu_config`.
+  - Estructura alineada a la base de datos (`brand_id`, `cause_id`, nombres y descripciones).
+  - Carga inicial por marca basada en la selección de institución (Tecmilenio, Tec y TecSalud).
+- **Frontend (Causas – íconos):**
+  - Generación dinámica de los círculos de la sección de íconos en función de las causas disponibles por institución.
+  - Tooltips flotantes sobre cada círculo indicando el nombre de la causa.
+  - Carrusel horizontal automático cuando hay más de 4 causas, con desplazamiento infinito y velocidad suave.
+- **Backend (Esquema):**
+  - Módulo de esquema en `backend/src/db/schema.js` con nombres de tablas, columnas y enums (`payment_status`, `recipient_type`, `group_category`).
+
+### Cambiado
+- **Estilos:** Ajustes en `assets/style.css` para:
+  - Habilitar contenedor de íconos como carrusel (`.cause__icons--scrollable`) con scrollbar sutil.
+  - Agregar tooltips (`.cause__tooltip`) a los círculos de causas.
+- **Frontend:** `frontend/js/causas-interactivo.js` ahora:
+  - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
+  - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
+
+## [1.6.0] - 2026-02-20
+
+### Agregado
+- **Frontend (Flujo de donación):**
+  - Nueva página `frontend/views/elige_donante.html` que actúa como paso intermedio antes de diseñar el certificado.
+  - Selector de tipo de donación con dos opciones:
+    - “Donar como Persona” (`donor_type = "individual"`).
+    - “Donar como Empresa” (`donor_type = "corporate"`).
+  - Script `frontend/js/elige-donante.js` que:
+    - Valida que exista una causa seleccionada (`selected_cause`) en `localStorage`.  
+    - Redirige de vuelta a `index.html#causas` si el usuario intenta entrar sin haber elegido causa.
+    - Guarda el `donor_type` en `localStorage` y redirige a `generar_certificado.html` según la opción seleccionada.
+- **Frontend (Navegación):**
+  - Actualización de los CTAs “Regala un Certificado” en:
+    - `frontend/views/index.html` (hero principal).
+    - `frontend/components/nav_bar.html` (botón del menú).
+  - Ambos ahora apuntan a `views/elige_donante.html` manteniendo la validación previa de causa con `selected_cause`.
+
+### Cambiado
+- **Estilos:** Ampliación de `assets/style.css` para:
+  - Nuevo layout `.donor` y `.donor__grid` con dos columnas (individual y corporativa).
+  - Fondo con imagen a pantalla parcial, degradado y contenido centrado en `.donor__content`.
+  - Botones `.donor__cta` con estilo de pastilla y hover con sombra.
+
 ## [1.1.1] - 2026-01-28
 
 ### Documentación
