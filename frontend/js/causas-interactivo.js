@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
         { src: "../assets/equipo.png", alt: "Ícono comunidad de salud" }
       ],
       image: {
-        src: "../assets/IMAGEN_TECMILENIO.jpg",
+        src: "../assets/Imagen tecsalud.png",
         alt: "Equipo médico en TecSalud"
       },
       leftClass: "cause__left--tecsalud"
@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
         { src: "../assets/equipo.png", alt: "Ícono comunidad estudiantil" }
       ],
       image: {
-        src: "../assets/IMAGEN_TECMILENIO.jpg",
+        src: "../assets/Imagen tec de monterrey.png",
         alt: "Campus del Tecnológico de Monterrey"
       },
       leftClass: "cause__left--tec"
