@@ -226,9 +226,16 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       currentSelected = currentSelectedRaw ? JSON.parse(currentSelectedRaw) : null;
     } catch (e) {}
-    causes.forEach(function (cause, index) {
-      if (cause.is_placeholder) return;
-      var sprite = getIconSprite(index);
+    // Filter valid causes first
+    var validCauses = causes.filter(function(c) { return !c.is_placeholder; });
+    
+    // We removed the carousel logic as per new requirement:
+    // "si son mas de cuatro circulos la seccion el alto se hace mas grande y se ponen otros cuatro circulos en la parte de abajo"
+    // So we just render the valid causes. Flex-wrap in CSS handles the rest.
+    
+    validCauses.forEach(function (cause, i) {
+      var sprite = getIconSprite(i);
+      
       var wrapper = document.createElement("div");
       wrapper.className = "cause__icon";
       wrapper.setAttribute("data-cause-id", cause.cause_id || "");
@@ -238,12 +245,15 @@ document.addEventListener("DOMContentLoaded", function () {
       img.src = sprite.src;
       img.alt = sprite.alt;
 
-      var tooltip = document.createElement("span");
-      tooltip.className = "cause__tooltip";
-      tooltip.textContent = cause.cause_name || "";
+      // Tooltip handling using global tooltip to avoid overflow clipping
+      wrapper.addEventListener("mouseenter", function () {
+        showGlobalTooltip(cause, wrapper);
+      });
+      wrapper.addEventListener("mouseleave", function () {
+        hideGlobalTooltip();
+      });
 
       wrapper.appendChild(img);
-      wrapper.appendChild(tooltip);
       iconsContainer.appendChild(wrapper);
 
       if (currentSelected && currentSelected.cause_id === cause.cause_id) {
@@ -259,38 +269,27 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
           localStorage.setItem("selected_cause", JSON.stringify(payload));
         } catch (e) {}
+        
+        // Highlight matching icon
         iconsContainer.querySelectorAll(".cause__icon").forEach(function (el) {
-          el.classList.remove("cause__icon--active");
+          if (el.getAttribute("data-cause-id") === cause.cause_id) {
+            el.classList.add("cause__icon--active");
+          } else {
+            el.classList.remove("cause__icon--active");
+          }
         });
-        wrapper.classList.add("cause__icon--active");
+
         var err = card.querySelector(".cause__error");
         if (err) err.remove();
       });
     });
 
-    var iconCount = iconsContainer.children.length;
-    if (iconCount > 4) {
-      iconsContainer.classList.add("cause__icons--scrollable");
-    } else {
-      iconsContainer.classList.remove("cause__icons--scrollable");
-      iconsContainer.scrollLeft = 0;
-    }
-
+    // Cleanup scroll logic
+    iconsContainer.classList.remove("cause__icons--scrollable");
+    
     if (iconsAutoScrollTimer) {
       clearInterval(iconsAutoScrollTimer);
       iconsAutoScrollTimer = null;
-    }
-
-    if (iconCount > 4) {
-      iconsAutoScrollTimer = setInterval(function () {
-        var maxScroll = iconsContainer.scrollWidth - iconsContainer.clientWidth;
-        if (maxScroll <= 0) return;
-        if (iconsContainer.scrollLeft >= maxScroll) {
-          iconsContainer.scrollLeft = 0;
-          return;
-        }
-        iconsContainer.scrollLeft += 1;
-      }, 100);
     }
   }
 
@@ -387,6 +386,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var isAnimating = false;
   var iconsAutoScrollTimer = null;
+  var globalTooltip = null;
+
+  function getGlobalTooltip() {
+    if (!globalTooltip) {
+      globalTooltip = document.createElement("div");
+      globalTooltip.id = "cause-global-tooltip";
+      globalTooltip.className = "cause__global-tooltip";
+      document.body.appendChild(globalTooltip);
+    }
+    return globalTooltip;
+  }
+
+  function showGlobalTooltip(cause, target) {
+    var tooltip = getGlobalTooltip();
+    
+    // Build content
+    var html = '<div class="tooltip-title">' + (cause.cause_name || '') + '</div>';
+    if (cause.topics && cause.topics.length > 0) {
+      html += '<div class="tooltip-topics">';
+      cause.topics.forEach(function(t) {
+        // "agregle un circulo a esa causa" -> visual bullet point
+        html += '<div class="tooltip-topic"><span class="topic-dot"></span>' + (t.topic_name || '') + '</div>';
+      });
+      html += '</div>';
+    }
+    
+    tooltip.innerHTML = html;
+    tooltip.style.display = "block";
+    tooltip.style.opacity = "0";
+    
+    // Calculate position
+    var rect = target.getBoundingClientRect();
+    var scrollY = window.scrollY || window.pageYOffset;
+    var scrollX = window.scrollX || window.pageXOffset;
+    
+    // Preliminary render to get dimensions
+    requestAnimationFrame(function() {
+      var tooltipRect = tooltip.getBoundingClientRect();
+      var top = rect.top + scrollY - tooltipRect.height - 12; // 12px gap above
+      var left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+      
+      // Prevent going off-screen (basic)
+      if (left < 10) left = 10;
+      if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+      }
+
+      tooltip.style.top = top + "px";
+      tooltip.style.left = left + "px";
+      tooltip.style.opacity = "1";
+    });
+  }
+
+  function hideGlobalTooltip() {
+    if (globalTooltip) {
+      globalTooltip.style.opacity = "0";
+      globalTooltip.style.display = "none";
+    }
+  }
 
   function applyDesign(key) {
     var design = designs[key];
