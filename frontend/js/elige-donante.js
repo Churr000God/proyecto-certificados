@@ -23,7 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
       try {
         localStorage.setItem("donor_type", type);
       } catch (e) {}
-      window.location.href = "../views/generar_certificado.html";
+      if (type === 'individual') {
+        window.location.href = "../views/donacion_individual.html";
+      } else {
+        // Fallback or future implementation for corporate
+        window.location.href = "../views/donacion_corporativa.html"; 
+      }
     });
   });
 });

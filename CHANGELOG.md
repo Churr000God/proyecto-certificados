@@ -80,6 +80,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.8.0] - 2026-02-24
+
+### Agregado
+- **Frontend (Donación Individual):**
+  - Nueva página `frontend/views/donacion_individual.html` con formulario dinámico y vista previa de certificado en tiempo real.
+  - Generación de certificado PDF usando `html2canvas` y `jspdf` con almacenamiento en local (Base64).
+  - Persistencia de datos de sesión en `localStorage` (`session_donation_data`) alineada al esquema de base de datos.
+  - Lógica de negocio en `frontend/js/donacion-individual.js`:
+    - Carga de temas y subcausas desde `localStorage` (`menu_config`).
+    - Renderizado dinámico de campos de beneficiario según el tipo de causa (Estudiante, Grupo, Instalación, etc.).
+    - Validación de formularios y reglas de negocio (montos, archivos, campos requeridos).
+- **Estilos (`assets/style_donacioni.css`):**
+  - Hoja de estilos dedicada para el flujo de donación.
+  - Clases de tema para certificados (`.cert-theme-becas`, `.cert-theme-salud`, etc.) con diseños únicos.
+  - Diseño responsivo con vista previa "sticky" y ajuste automático de altura.
+
+### Cambiado
+- **Frontend (`views/elige_donante.html`):**
+  - Actualización para redirigir a `donacion_individual.html` al seleccionar donante individual.
+
 ## [1.7.0] - 2026-02-24
 
 ### Agregado
