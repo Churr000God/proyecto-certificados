@@ -26,6 +26,7 @@ El sistema utiliza una arquitectura de contenedores orquestada por Docker Compos
 *   **Frontend**:
     *   HTML5, CSS3, JavaScript Vanilla.
     *   Servido estáticamente por Nginx.
+    *   Bibliotecas externas: `html2canvas` y `jspdf` (para generación de PDFs).
 
 ## 📂 Estructura del Proyecto
 
