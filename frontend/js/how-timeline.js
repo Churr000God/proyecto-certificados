@@ -11,7 +11,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     var stepCount = steps.length - 1;
     var w = (i / stepCount) * 100;
-    progressFill.style.width = w + "%";
+    // Usar variable CSS para manejar width/height responsive
+    progressFill.style.setProperty('--progress', w + '%');
+    // Mantener compatibilidad si el CSS no usa la variable aún
+    progressFill.style.width = w + "%"; 
   }
 
   steps.forEach(function (step) {

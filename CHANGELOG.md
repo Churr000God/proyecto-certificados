@@ -80,6 +80,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.7.0] - 2026-02-24
+
+### Agregado
+- **Frontend (UI/UX):**
+  - Implementación de diseño responsivo en la sección "¿Cómo Funciona?".
+  - Soporte para barra de progreso vertical en dispositivos móviles mediante variables CSS.
+  - Ajuste de layout en la cuadrícula de causas para permitir envoltura (wrap) de elementos en lugar de scroll horizontal.
+
+### Cambiado
+- **Estilos (`assets/style.css`):**
+  - Refactorización de `.how__progress-fill` para usar `var(--progress)` permitiendo control dual de ancho/alto.
+  - Eliminación de scroll horizontal en `.cause__icons`, reemplazado por `flex-wrap: wrap` con límite de ancho.
+- **Frontend (`js/causas-interactivo.js`):**
+  - Eliminación de lógica de carrusel infinito (duplicación de nodos y animación de scroll).
+  - Simplificación del renderizado de causas para mostrar solo elementos válidos.
+- **Frontend (`js/how-timeline.js`):**
+  - Actualización del cálculo de progreso para establecer la variable CSS `--progress`.
+
 ## [1.6.0] - 2026-02-20
 
 ### Agregado
