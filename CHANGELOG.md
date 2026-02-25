@@ -80,6 +80,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.9.0] - 2026-02-24
+
+### Agregado
+- **Frontend (Donación Corporativa):**
+  - Nueva página `frontend/views/donacion_corporativa.html` para flujo B2B.
+  - Lógica de negocio en `frontend/js/donacion-corporativa.js`:
+    - Carga masiva de donaciones (interfaz y procesamiento de archivos).
+    - **Mejora:** Fallback automático de logo. Si el usuario no sube un logo personalizado, se muestra el logo de la institución (Tecmilenio, Tec de Monterrey, TecSalud) correspondiente al tema seleccionado.
+    - Renderizado dinámico de temas y subcausas.
+- **Estilos (`assets/style_donacionc.css`):**
+  - Hoja de estilos dedicada para donación corporativa.
+  - **Fix:** El contenedor de previsualización del certificado (`.certificate-preview`) ahora adapta su altura automáticamente al contenido (`min-height` y eliminación de `aspect-ratio` fijo), evitando cortes en textos largos mientras mantiene la consistencia del ancho.
+
 ## [1.8.0] - 2026-02-24
 
 ### Agregado

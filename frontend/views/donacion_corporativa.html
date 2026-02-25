@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donación Corporativa - Becas Con Propósito</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <!-- CSS Específico para Corporativo -->
+    <link rel="stylesheet" href="../assets/style_donacionc.css">
+    <!-- CSS Componentes -->
+    <link rel="stylesheet" href="../assets/nav_bar.css">
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- SheetJS para leer Excel/CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="../js/include-layout.js" defer></script>
+    <script src="../js/donacion-corporativa.js" defer></script>
+</head>
+<body>
+    <div id="app-header"></div>
+
+    <main class="container page-container">
+        <!-- Steps Indicator -->
+        <div class="steps-indicator" id="steps-indicator">
+            <div class="step step--active" data-step="1">
+                <div class="step__icon">✏️</div>
+                <span class="step__label">DISEÑO</span>
+            </div>
+            <div class="step__line"></div>
+            <div class="step" data-step="2">
+                <div class="step__icon">👤</div>
+                <span class="step__label">DATOS</span>
+            </div>
+            <div class="step__line"></div>
+            <div class="step" data-step="3">
+                <div class="step__icon">💳</div>
+                <span class="step__label">PAGO</span>
+            </div>
+        </div>
+
+        <!-- STEP 1: DISEÑO Y CONFIGURACIÓN -->
+        <div id="step-1-design" class="certificate-builder">
+            <!-- Left Column: Form -->
+            <div class="builder__form">
+                <h1 class="builder__title">Personaliza la Donación Corporativa</h1>
+
+                <!-- 1. Thematic Selection -->
+                <section class="builder__section">
+                    <h2 class="builder__subtitle">Elige la Causa</h2>
+                    <div id="topics-container" class="topics-grid">
+                        <!-- Buttons injected by JS -->
+                        <p class="loading-text">Cargando causas...</p>
+                    </div>
+
+                    <!-- New: Specific Topic Selection -->
+                    <div id="specific-topic-container" class="form-group hidden" style="margin-top: 20px;">
+                        <label for="specific-topic-select" class="form-label">¿Deseas apoyar un programa específico? (Opcional)</label>
+                        <select id="specific-topic-select" class="form-select">
+                            <option value="">-- General (Sin preferencia) --</option>
+                            <!-- Options injected by JS -->
+                        </select>
+                    </div>
+
+                    <!-- TOGGLE DE CARGA MASIVA (Solo visible para Becas) -->
+                    <div id="bulk-upload-toggle-container" class="form-group checkbox-group hidden" style="margin-top: 20px; background: #ebf8ff; padding: 15px; border-radius: 8px;">
+                        <input type="checkbox" id="bulk-upload-toggle">
+                        <label for="bulk-upload-toggle" style="font-weight: 700; color: #2c5282;">Quiero cargar una lista de beneficiarios (Carga Masiva)</label>
+                    </div>
+                </section>
+
+                <!-- 2. Visual Personalization -->
+                <section class="builder__section">
+                    <h2 class="builder__subtitle">Personalización Visual</h2>
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="logo-upload" accept="image/png, image/jpeg, image/svg+xml" hidden>
+                        <div class="upload-content">
+                            <p class="upload-title">Sube tu Logo Corporativo</p>
+                            <p class="upload-subtitle">PNG, JPG hasta 5MB</p>
+                        </div>
+                    </div>
+                    <p id="upload-error" class="error-msg hidden"></p>
+                </section>
+
+                <!-- 3. Message & Details (Hidden if Bulk Upload is checked) -->
+                <div id="single-donation-fields">
+                    <section class="builder__section">
+                        <h2 class="builder__subtitle">Mensaje del Certificado</h2>
+                        <div class="form-group">
+                            <label for="recipient-name" class="form-label">NOMBRE DEL DESTINATARIO</label>
+                            <input type="text" id="recipient-name" class="form-input" placeholder="Ej. Equipo de Ventas">
+                        </div>
+                        <div class="form-group">
+                            <label for="personal-message" class="form-label">MENSAJE PERSONAL</label>
+                            <textarea id="personal-message" class="form-input form-textarea" placeholder="Escribe una dedicatoria especial..."></textarea>
+                        </div>
+                    </section>
+
+                    <section class="builder__section">
+                        <h2 class="builder__subtitle">Monto de la Donación</h2>
+                        <select id="amount-select" class="form-select">
+                            <option value="" disabled selected>Seleccione un monto</option>
+                            <option value="10000">$10,000.00 MXN</option>
+                            <option value="25000">$25,000.00 MXN</option>
+                            <option value="50000">$50,000.00 MXN</option>
+                            <option value="other">Otro Monto</option>
+                        </select>
+                        
+                        <div id="custom-amount-container" class="form-group hidden" style="margin-top: 10px;">
+                            <input type="number" id="custom-amount" class="form-input" placeholder="$ Ingrese el monto a donar" min="1">
+                            <p id="amount-error" class="error-msg hidden">El monto no es válido</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Right Column: Preview -->
+            <div class="builder__preview">
+                <div class="preview__header">
+                    <span>VISTA PREVIA EN TIEMPO REAL</span>
+                    <span class="preview__zoom">🔍</span>
+                </div>
+                <div class="certificate-preview-container">
+                    <div class="certificate-preview" id="certificate-preview">
+                        <!-- Certificate Content -->
+                        <div class="cert__container">
+                            <div class="cert__logo-area">
+                                <img id="cert-logo" src="" alt="Logo" class="cert__logo">
+                            </div>
+                            <h2 class="cert__title">Certificado de<br>Generosidad</h2>
+                            <p class="cert__subtitle">Este certificado reconoce que</p>
+                            <h3 class="cert__recipient" id="cert-recipient">[Nombre del Destinatario]</h3>
+                            <p class="cert__text">
+                                Ha realizado una valiosa donación para apoyar las <strong id="cert-cause-name">Becas</strong>
+                            </p>
+                            <div class="cert__signature-line"></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="preview__note">ℹ️ Este certificado es una representación visual.</p>
+            </div>
+        </div>
+
+        <!-- STEP 2 (BULK): CARGA MASIVA (Hidden initially) -->
+        <div id="step-2-bulk" class="bulk-upload-step hidden">
+            <div class="bulk-header">
+                <h1 class="bulk-title">Reconoce a tu equipo con impacto social</h1>
+                <p class="bulk-subtitle">Sube tu lista de colaboradores para asignar becas y transformar vidas.<br>Nuestro sistema validará los datos automáticamente.</p>
+            </div>
+
+            <!-- Download Template -->
+            <div class="bulk-action-card">
+                <div class="bulk-action-icon">📑</div>
+                <div class="bulk-action-content">
+                    <h3>1. Descargar Plantilla Excel</h3>
+                    <p>Utiliza el formato oficial para asegurar una carga exitosa.</p>
+                </div>
+                <button class="btn-download" id="btn-download-template">📥 Descargar plantilla .xlsx</button>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="bulk-upload-section">
+                <h3>2. Carga tu archivo</h3>
+                <div class="drag-drop-area" id="bulk-drop-zone">
+                    <input type="file" id="bulk-file-input" accept=".xlsx, .xls, .csv" hidden>
+                    <div class="drag-drop-content">
+                        <div class="drag-icon">☁️</div>
+                        <p class="drag-title">Arrastra tu archivo aquí</p>
+                        <p class="drag-subtitle">o haz clic para buscar en tu ordenador (.xlsx, .csv)</p>
+                    </div>
+                </div>
+                <div id="file-info" class="file-info hidden">
+                    <span class="file-name">lista_nomina_oct2023.xlsx</span>
+                    <button class="btn-remove-file">❌</button>
+                </div>
+            </div>
+
+            <!-- Validation Table -->
+            <div id="validation-section" class="validation-section hidden">
+                <div class="validation-header">
+                    <h3>Vista previa de validación</h3>
+                    <span class="file-badge" id="loaded-filename">archivo.xlsx</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="validation-table">
+                        <thead>
+                            <tr>
+                                <th>FILA #</th>
+                                <th>NOMBRE</th>
+                                <th>CORREO</th>
+                                <th>MONTO</th>
+                                <th>ESTATUS</th>
+                                <th>CORREO BENEFICIARIO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="validation-table-body">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <button class="btn-link" id="view-all-records">Ver todos los registros</button>
+                </div>
+            </div>
+
+            <!-- Summary & Actions -->
+            <div id="bulk-summary-bar" class="bulk-summary-bar hidden">
+                <div class="summary-info">
+                    <div class="summary-item">
+                        <span class="summary-label">RESUMEN DE LA CARGA</span>
+                        <span class="summary-value"><strong id="total-records">0</strong> Registros detectados</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-item">
+                        <span class="summary-label">TOTAL A PAGAR</span>
+                        <span class="summary-amount" id="bulk-total-amount">$0.00 MXN</span>
+                    </div>
+                </div>
+                <div class="summary-actions">
+                    <button type="button" class="btn-text" id="btn-cancel-bulk">Cancelar</button>
+                    <button type="button" class="btn-primary" id="btn-process-bulk">Procesar lista y Pagar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div class="sticky-footer" id="main-sticky-footer">
+        <div class="container sticky-footer__content">
+            <div class="donation-total">
+                <span class="total-label">TOTAL DE DONACIÓN</span>
+                <span class="total-amount" id="total-display">$0.00 <small>MXN</small></span>
+            </div>
+            <div class="footer-actions">
+                <button type="button" class="btn-cancel" onclick="window.history.back()">Cancelar</button>
+                <button type="button" id="btn-continue" class="btn-continue" disabled>Continuar a datos de envío ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-footer"></div>
+</body>
+</html>
