@@ -7,3 +7,6 @@ coverage
 .idea
 .vscode
 *.log
+.env
+node_modules/
+.env.local

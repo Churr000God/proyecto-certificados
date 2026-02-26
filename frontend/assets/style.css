@@ -56,6 +56,8 @@ main.hero-page {
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    overflow-x: hidden; /* Esto evita el glitch del scroll horizontal y recortes raros */
 }
 
 .hero {
@@ -65,7 +67,16 @@ main.hero-page {
     min-height: 70vh;
     background-color: var(--primary-color);
     color: var(--white-color);
+
+    /* --- SOLUCIÓN AL BUG --- */
     background-image: url("../assets/img/img-principal.png");
+    background-repeat: no-repeat;
+    background-size: cover;       /* Obliga a la imagen a llenar todo el espacio */
+    background-position: center;  /* Evita que se desfase al estirar */
+    background-attachment: scroll; /* Cambia a 'fixed' si quieres efecto parallax, pero 'scroll' es más estable */
+    
+    width: 100%;                  /* Asegura que ocupe todo el ancho disponible */
+    overflow: hidden;             /* Evita que elementos internos "empujen" el grid hacia afuera */
 }
 
 .hero-text {
