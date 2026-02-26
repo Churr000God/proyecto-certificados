@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Clear session data on load
+    // Clear session data on load to avoid conflicts
     localStorage.removeItem('session_donation_data');
-    localStorage.removeItem('certificate_pdf');
+    localStorage.removeItem('corporate_session_data');
+    // localStorage.removeItem('certificate_pdf'); // Removed as we don't use it anymore
 
     // DOM Elements
     const topicsContainer = document.getElementById('topics-container');
@@ -515,31 +516,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSessionData() {
         const targetType = determineTargetType();
         
-        // Construct object matching backend schema expectations
+        // Construct object matching backend schema expectations (using camelCase for keys to match schema columns mapping)
         const sessionData = {
             donation: {
                 amount: state.amount,
-                cause_id: state.selectedTheme ? state.selectedTheme.id : null,
-                cause_name: state.selectedTheme ? state.selectedTheme.name : null,
-                target_type: targetType,
-                specific_topic_id: state.specificTopic,
+                causeId: state.selectedTheme ? state.selectedTheme.id : null,
+                causeName: state.selectedTheme ? state.selectedTheme.name : null,
+                targetType: targetType,
+                specificTopicId: state.specificTopic,
                 // These will be filled in next step
-                student_beneficiary_id: null, 
-                external_person_id: null,
-                representative_group_id: null,
-                facility_id: null,
-                social_program_id: null
+                studentBeneficiaryId: null, 
+                externalPersonId: null,
+                representativeGroupId: null,
+                facilityId: null,
+                socialProgramId: null
             },
-            beneficiary_data: {
+            beneficiaryData: {
                 type: targetType,
                 data: state.beneficiaryData // Contains specific fields
             },
             certificate: {
-                honoree_name: state.recipientName,
-                personal_message: state.personalMessage,
+                honoreeName: state.recipientName,
+                personalMessage: state.personalMessage,
                 theme: state.selectedTheme ? state.selectedTheme.themeClass : 'default'
             },
-            custom_logo: state.hasCustomLogo ? state.logoUrl : null,
+            customLogo: state.hasCustomLogo ? state.logoUrl : null,
             timestamp: new Date().toISOString()
         };
         
@@ -560,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Generate canvas from HTML
             const canvas = await html2canvas(element, {
-                scale: 2, // High resolution
+                scale: 1, // Reduced resolution to fix QuotaExceededError
                 useCORS: true,
                 logging: false,
                 backgroundColor: null
@@ -585,11 +586,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             pdf.addImage(imgData, 'PNG', 0, y > 0 ? y : 0, pdfWidth, pdfHeight);
             
-            // Save PDF as Data URI string to localStorage
-            const pdfBase64 = pdf.output('datauristring');
-            localStorage.setItem('certificate_pdf', pdfBase64);
+            // PDF Generation logic completed
+            // We do NOT save the PDF to localStorage anymore to avoid QuotaExceededError
+            // The PDF can be regenerated if needed, or passed via Blob/URL if immediate download is required.
             
-            console.log('PDF generado y guardado en localStorage');
+            console.log('PDF generado exitosamente (en memoria)');
+            
             return true;
         } catch (error) {
             console.error('Error generando PDF:', error);
@@ -613,9 +615,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Generate PDF
             await generateCertificatePDF();
             
-            // Navigate to next step (simulated for now)
-            alert('¡Listo! Datos guardados y certificado generado. Procediendo al pago...');
-            // window.location.href = '/pago'; // Uncomment when ready
+            // Navigate to next step
+            // alert('¡Listo! Datos guardados y certificado generado. Procediendo al pago...');
+            window.location.href = 'inscripcion.html';
             
         } catch (error) {
             console.error(error);

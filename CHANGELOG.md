@@ -113,6 +113,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Frontend (`views/elige_donante.html`):**
   - Actualización para redirigir a `donacion_individual.html` al seleccionar donante individual.
 
+## [1.8.0] - 2026-02-25
+
+### Agregado
+- **Backend (Supabase Integration):**
+  - Implementación de cliente Supabase (`@supabase/supabase-js`) en `backend/src/index.js`.
+  - Reemplazo de base de datos simulada (MOCK_DB) por persistencia real en PostgreSQL.
+  - Nuevos endpoints:
+    - `POST /api/donations/check-limit`: Valida que la donación actual + historial anual no exceda $250,000 MXN por RFC/Email.
+    - `POST /api/donations/process`: Procesa la donación insertando secuencialmente en tablas `donor`, `billing_details`, `donations` y `certificates`.
+- **Backend (Validaciones):**
+  - Validación estricta de `target_type` con fallback automático a `'general'` si faltan IDs dependientes (evita error 500 por constraint `donations_target_chk`).
+  - Mapeo automático de datos del frontend al esquema de base de datos (`mapToDb`).
+- **Frontend (Inscripción):**
+  - Actualización de `frontend/js/inscripcion.js` para recolectar datos fiscales completos (RFC, Razón Social, CP, Email Fiscal).
+  - Integración de validación de límite anual antes de procesar el pago.
+  - Construcción de payload estructurado conforme al esquema de base de datos.
+
+### Cambiado
+- **Frontend (UI):**
+  - Campo `fiscal-cp` separado en `frontend/views/inscripcion.html` para evitar errores de longitud en base de datos.
+- **Frontend (Código):**
+  - Estandarización de claves a camelCase en `donacion-individual.js` y `donacion-corporativa.js` para consistencia con el backend.
+- **Configuración:**
+  - Archivo `.env` (no versionado) configurado con credenciales de Supabase.
+
 ## [1.7.0] - 2026-02-24
 
 ### Agregado

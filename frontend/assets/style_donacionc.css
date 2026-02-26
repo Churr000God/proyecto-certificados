@@ -566,35 +566,53 @@ body {
     left: 0;
     width: 100%;
     background: #fff;
-    padding: 1.5rem 0;
+    border-top: 1px solid #e2e8f0;
+    padding: 1.25rem 0;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
     z-index: 100;
-    border-top: 1px solid #e2e8f0;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
 }
 
 .sticky-footer__content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
 }
 
 .donation-total {
     display: flex;
     flex-direction: column;
+    gap: 0.25rem;
 }
 
 .total-label {
     font-size: 0.85rem;
+    text-transform: uppercase;
     color: #718096;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .total-amount {
     font-size: 2rem;
     font-weight: 800;
     color: var(--primary-color);
-    font-family: 'Playfair Display', serif;
+    line-height: 1;
+}
+
+.total-amount small {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #718096;
+    margin-left: 0.25rem;
 }
 
 .footer-actions {
@@ -897,6 +915,19 @@ body {
     color: var(--text-color);
 }
 
+.bulk-error-msg {
+    color: #c53030;
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-right: 1.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
 .summary-divider {
     width: 2px;
     height: 40px;
@@ -932,6 +963,55 @@ body {
 
 .btn-primary:hover {
     background-color: #2b6cb0;
+}
+
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    background-color: #a0aec0 !important;
+}
+
+/* File Info */
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f0fff4;
+    border: 1px solid #c6f6d5;
+    border-radius: 8px;
+    color: #2f855a;
+    font-weight: 500;
+}
+
+.file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-remove-file {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.25rem;
+    line-height: 1;
+    color: #e53e3e;
+    transition: transform 0.2s;
+    border-radius: 50%;
+    width: auto; /* Reset width if global button has it */
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-file:hover {
+    transform: scale(1.1);
+    background-color: rgba(229, 62, 62, 0.1);
 }
 
 /* Helpers */

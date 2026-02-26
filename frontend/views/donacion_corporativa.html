@@ -174,8 +174,8 @@
                     </div>
                 </div>
                 <div id="file-info" class="file-info hidden">
-                    <span class="file-name">lista_nomina_oct2023.xlsx</span>
-                    <button class="btn-remove-file">❌</button>
+                    <span class="file-name" id="file-name-display"></span>
+                    <button class="btn-remove-file" id="btn-remove-file">❌</button>
                 </div>
             </div>
 
@@ -220,6 +220,9 @@
                         <span class="summary-label">TOTAL A PAGAR</span>
                         <span class="summary-amount" id="bulk-total-amount">$0.00 MXN</span>
                     </div>
+                </div>
+                <div id="bulk-error-msg" class="bulk-error-msg hidden">
+                    ⚠️ El monto total no puede exceder $250,000.00 MXN
                 </div>
                 <div class="summary-actions">
                     <button type="button" class="btn-text" id="btn-cancel-bulk">Cancelar</button>

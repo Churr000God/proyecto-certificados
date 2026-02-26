@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Clear session data specific to corporate on load
     localStorage.removeItem('corporate_session_data');
+    localStorage.removeItem('session_donation_data');
     
     // --- DOM Elements ---
     const topicsContainer = document.getElementById('topics-container');
@@ -44,6 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCancelBulk = document.getElementById('btn-cancel-bulk');
     const btnDownloadTemplate = document.getElementById('btn-download-template');
     const loadedFilenameEl = document.getElementById('loaded-filename');
+    const bulkErrorMsg = document.getElementById('bulk-error-msg');
+    
+    // File Info Elements
+    const fileInfoContainer = document.getElementById('file-info');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const btnRemoveFile = document.getElementById('btn-remove-file');
+    const btnViewAllRecords = document.getElementById('view-all-records');
     
     // State
     let state = {
@@ -60,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadedFile: null,
         parsedData: [],
         validRecords: 0,
-        bulkTotalAmount: 0
+        bulkTotalAmount: 0,
+        isExpanded: false
     };
 
     const BRAND_LOGOS = {
@@ -78,31 +87,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Becas -> Student
         if (lowerName.includes('beca')) {
-            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', themeClass: 'cert-theme-becas' };
+            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', themeClass: 'cert-theme-becas', targetType: 'student' };
         }
         
         // Salud / Medicina -> External Person
         if (lowerName.includes('salud') || lowerName.includes('medicina') || lowerName.includes('hospital') || lowerName.includes('cirugía') || lowerName.includes('prevención')) {
-            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', themeClass: 'cert-theme-salud' };
+            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', themeClass: 'cert-theme-salud', targetType: 'external_person' };
         }
         
         // Infraestructura / Instalaciones -> Facility
         if (lowerName.includes('infraestructura') || lowerName.includes('instalaciones') || lowerName.includes('espacios') || lowerName.includes('laboratorio') || lowerName.includes('biblioteca')) {
-            return { icon: '🏗️', color: '#27ae60', logo: '../assets/Instalacioines.png', themeClass: 'cert-theme-infraestructura' };
+            return { icon: '🏗️', color: '#27ae60', logo: '../assets/Instalacioines.png', themeClass: 'cert-theme-infraestructura', targetType: 'facility' };
         }
         
         // Equipo / Deporte / Cultura -> Group
         if (lowerName.includes('equipo') || lowerName.includes('deporte') || lowerName.includes('cultural') || lowerName.includes('borregos')) {
-            return { icon: '🏆', color: '#f39c12', logo: '../assets/equipo.png', themeClass: 'cert-theme-equipo' };
+            return { icon: '🏆', color: '#f39c12', logo: '../assets/equipo.png', themeClass: 'cert-theme-equipo', targetType: 'representative_group' };
         }
         
         // Comunidad / Social / Voluntariado -> Program
         if (lowerName.includes('comunidad') || lowerName.includes('social') || lowerName.includes('voluntariado') || lowerName.includes('sustentabilidad')) {
-            return { icon: '🤝', color: '#9b59b6', logo: '../assets/equipo.png', themeClass: 'cert-theme-program' }; 
+            return { icon: '🤝', color: '#9b59b6', logo: '../assets/equipo.png', themeClass: 'cert-theme-program', targetType: 'social_program' }; 
         }
 
         // Default
-        return { icon: '✨', color: '#3498db', logo: '', themeClass: 'cert-theme-program' };
+        return { icon: '✨', color: '#3498db', logo: '', themeClass: 'cert-theme-program', targetType: 'general' };
     }
 
     function loadThemesFromStorage() {
@@ -130,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             color: details.color,
                             logo: details.logo,
                             themeClass: details.themeClass,
+                            targetType: details.targetType,
                             subcauses: item.topics || []
                         };
                     });
@@ -240,6 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
         validateStep1();
     });
 
+    messageInput.addEventListener('input', (e) => {
+        state.personalMessage = e.target.value;
+    });
+
     amountSelect.addEventListener('change', (e) => {
         if (e.target.value === 'other') {
             state.isCustomAmount = true;
@@ -341,8 +355,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.isBulkUpload) {
             goToBulkStep();
         } else {
-            // Single donation flow - Mocked
-            alert('Procesando donación única corporativa... (Simulación)');
+            // Single donation flow
+            const targetType = state.selectedTheme ? (state.selectedTheme.targetType || 'general') : 'general';
+            
+            const corporateData = {
+                type: 'corporate_single',
+                timestamp: new Date().toISOString(),
+                donation: {
+                    amount: state.amount,
+                    cause_id: state.selectedTheme ? state.selectedTheme.id : null,
+                    cause_name: state.selectedTheme ? state.selectedTheme.label : null,
+                    target_type: targetType,
+                    specific_topic_id: state.specificTopic,
+                    student_beneficiary_id: null, 
+                    external_person_id: null,
+                    representative_group_id: null,
+                    facility_id: null,
+                    social_program_id: null
+                },
+                certificate: {
+                    honoree_name: state.recipientName,
+                    personal_message: state.personalMessage,
+                    theme: state.selectedTheme ? state.selectedTheme.themeClass : 'default'
+                },
+                custom_logo: state.hasCustomLogo ? state.logoUrl : null
+            };
+            
+            localStorage.setItem('corporate_session_data', JSON.stringify(corporateData));
+            window.location.href = 'inscripcion.html';
         }
     });
 
@@ -389,8 +429,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleBulkFile(file) {
         if (!file) return;
         state.uploadedFile = file;
+        
+        // Update UI
+        fileNameDisplay.textContent = file.name;
         loadedFilenameEl.textContent = file.name;
-        document.getElementById('file-info').classList.remove('hidden');
+        fileInfoContainer.classList.remove('hidden');
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -414,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.parsedData = [];
         state.validRecords = 0;
         state.bulkTotalAmount = 0;
-        validationTableBody.innerHTML = '';
+        state.isExpanded = false; // Reset expansion state
 
         dataRows.forEach((row, index) => {
             if (row.length === 0) return;
@@ -425,41 +468,98 @@ document.addEventListener('DOMContentLoaded', () => {
             const beneficiaryEmail = row[3] || '';
             
             let status = 'Valido';
-            let statusClass = 'status-valid';
             
             if (!name || !email || amount <= 0) {
                 status = 'Error';
-                statusClass = 'status-error';
             } else {
                 state.validRecords++;
                 state.bulkTotalAmount += amount;
             }
 
             state.parsedData.push({ id: index + 1, name, email, amount, beneficiaryEmail, status });
-
-            // Limit preview to first 5 rows for performance in UI
-            if (index < 5) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${String(index + 1).padStart(3, '0')}</td>
-                    <td><strong>${name}</strong></td>
-                    <td>${email}</td>
-                    <td>$${amount.toFixed(2)} MXN</td>
-                    <td class="${statusClass}">${status}</td>
-                    <td>${beneficiaryEmail || '-'}</td>
-                `;
-                validationTableBody.appendChild(tr);
-            }
         });
+
+        renderTable();
 
         validationSection.classList.remove('hidden');
         bulkSummaryBar.classList.remove('hidden');
         totalRecordsEl.textContent = state.validRecords;
         bulkTotalAmountEl.textContent = `$${state.bulkTotalAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+
+        // Validate Max Amount (250,000 MXN)
+        if (state.bulkTotalAmount > 250000) {
+            btnProcessBulk.disabled = true;
+            btnProcessBulk.classList.add('btn-disabled');
+            bulkErrorMsg.classList.remove('hidden');
+        } else {
+            btnProcessBulk.disabled = false;
+            btnProcessBulk.classList.remove('btn-disabled');
+            bulkErrorMsg.classList.add('hidden');
+        }
     }
+
+    function renderTable() {
+        validationTableBody.innerHTML = '';
+        const limit = state.isExpanded ? state.parsedData.length : 5;
+        
+        const recordsToRender = state.parsedData.slice(0, limit);
+        
+        recordsToRender.forEach(record => {
+            const tr = document.createElement('tr');
+            const statusClass = record.status === 'Valido' ? 'status-valid' : 'status-error';
+            
+            tr.innerHTML = `
+                <td>${String(record.id).padStart(3, '0')}</td>
+                <td><strong>${record.name}</strong></td>
+                <td>${record.email}</td>
+                <td>$${record.amount.toFixed(2)} MXN</td>
+                <td class="${statusClass}">${record.status}</td>
+                <td>${record.beneficiaryEmail || '-'}</td>
+            `;
+            validationTableBody.appendChild(tr);
+        });
+
+        // Toggle Button Visibility and Text
+        if (state.parsedData.length > 5) {
+            btnViewAllRecords.classList.remove('hidden');
+            btnViewAllRecords.textContent = state.isExpanded ? 'Ver menos registros' : 'Ver todos los registros';
+        } else {
+            btnViewAllRecords.classList.add('hidden');
+        }
+    }
+
+    btnViewAllRecords.addEventListener('click', () => {
+        state.isExpanded = !state.isExpanded;
+        renderTable();
+    });
 
     btnCancelBulk.addEventListener('click', () => {
         if(confirm('¿Cancelar carga?')) location.reload();
+    });
+
+    btnRemoveFile.addEventListener('click', () => {
+        // Reset State
+        state.uploadedFile = null;
+        state.parsedData = [];
+        state.validRecords = 0;
+        state.bulkTotalAmount = 0;
+        state.isExpanded = false;
+        
+        // Reset Input
+        bulkFileInput.value = '';
+        
+        // Reset UI
+        fileInfoContainer.classList.add('hidden');
+        validationSection.classList.add('hidden');
+        bulkSummaryBar.classList.add('hidden');
+        validationTableBody.innerHTML = '';
+        totalRecordsEl.textContent = '0';
+        bulkTotalAmountEl.textContent = '$0.00 MXN';
+        
+        // Reset Validation
+        btnProcessBulk.disabled = false;
+        btnProcessBulk.classList.remove('btn-disabled');
+        bulkErrorMsg.classList.add('hidden');
     });
 
     btnProcessBulk.addEventListener('click', () => {
@@ -467,16 +567,56 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('No hay registros válidos.');
             return;
         }
-        // Save to storage
-        const donationData = {
+
+        // Generate individual donation objects for each valid record
+        const donations = state.parsedData
+            .filter(r => r.status === 'Valido')
+            .map(record => {
+                const targetType = state.selectedTheme ? (state.selectedTheme.targetType || 'general') : 'general';
+                
+                return {
+                    donation: {
+                        amount: record.amount,
+                        causeId: state.selectedTheme ? state.selectedTheme.id : null,
+                        causeName: state.selectedTheme ? state.selectedTheme.label : null,
+                        targetType: targetType,
+                        specificTopicId: state.specificTopic,
+                        // Initialize specific IDs as null
+                        studentBeneficiaryId: null, 
+                        externalPersonId: null,
+                        representativeGroupId: null,
+                        facilityId: null,
+                        socialProgramId: null
+                    },
+                    beneficiaryData: {
+                        type: targetType,
+                        data: {
+                            email: record.beneficiaryEmail || null,
+                            name: record.name // In some cases the name is part of beneficiary data too
+                        }
+                    },
+                    certificate: {
+                        honoreeName: record.name,
+                        personalMessage: state.personalMessage || '',
+                        theme: state.selectedTheme ? state.selectedTheme.themeClass : 'default'
+                    },
+                    customLogo: state.hasCustomLogo ? state.logoUrl : null,
+                    timestamp: new Date().toISOString()
+                };
+            });
+
+        // Save to storage with enhanced structure
+        const corporateData = {
             type: 'corporate_bulk',
+            timestamp: new Date().toISOString(),
             theme: state.selectedTheme,
-            logoUrl: state.logoUrl,
-            records: state.parsedData.filter(r => r.status === 'Valido'),
-            totalAmount: state.bulkTotalAmount
+            totalAmount: state.bulkTotalAmount,
+            records: donations // Array of full donation objects
         };
-        localStorage.setItem('corporate_session_data', JSON.stringify(donationData));
-        alert('Redirigiendo a pago...');
+        
+        localStorage.setItem('corporate_session_data', JSON.stringify(corporateData));
+        // alert('Redirigiendo a pago...');
+        window.location.href = 'inscripcion.html';
     });
 
     // Initialize

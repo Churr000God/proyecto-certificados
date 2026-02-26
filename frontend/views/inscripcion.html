@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Inscripción - Becas Con Propósito</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/nav_bar.css">
+    <link rel="stylesheet" href="../assets/style_inscripcion.css">
+    <!-- Scripts -->
+    <script src="../js/include-layout.js" defer></script>
+    <script src="../js/inscripcion.js" defer></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="app-header"></div>
+
+    <main class="page-container">
+        <!-- Breadcrumb (Optional) -->
+        <div style="margin-bottom: 1rem; color: #718096; font-size: 0.9rem;">
+            Inicio / Becas / Pago
+        </div>
+
+        <div class="page-title">
+            <h1>Finalizar Inscripción</h1>
+            <p>Completa los datos para asegurar tu lugar en Tecmilenio</p>
+        </div>
+
+        <div class="checkout-grid">
+            <!-- Left Column: Forms -->
+            <div class="checkout-forms">
+                
+                <!-- 1. Información del Donante -->
+                <section class="checkout-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-user"></i></div>
+                        <h2 class="section-title">1. Información del Donante</h2>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-input" id="donor-name" placeholder="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefono</label>
+                            <input type="tel" class="form-input" id="donor-phone" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo</label>
+                        <input type="email" class="form-input" id="donor-email" placeholder="">
+                    </div>
+                </section>
+
+                <!-- 2. Sección Fiscal -->
+                <section class="checkout-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <h2 class="section-title">2. Sección Fiscal</h2>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">RFC</label>
+                            <input type="text" class="form-input" id="fiscal-rfc" placeholder="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nombre / Razón Social</label>
+                            <input type="text" class="form-input" id="fiscal-name" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Código Postal</label>
+                            <input type="text" class="form-input" id="fiscal-cp" placeholder="00000" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dirección Fiscal</label>
+                            <input type="text" class="form-input" id="fiscal-address" placeholder="Calle, Número, Colonia">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-input" id="fiscal-email" placeholder="">
+                    </div>
+                </section>
+
+                <!-- 3. Método de Pago -->
+                <section class="checkout-section">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <h2 class="section-title">3. Método de Pago</h2>
+                    </div>
+
+                    <div class="payment-methods">
+                        <div class="payment-card selected" data-method="stripe">
+                            <div class="payment-icon"><i class="far fa-credit-card"></i></div>
+                            <div class="payment-label">Tarjeta de Debito / Crédito "Stripe"</div>
+                        </div>
+                        <div class="payment-card" data-method="paypal">
+                            <div class="payment-icon"><i class="fab fa-paypal"></i></div>
+                            <div class="payment-label">PayPal</div>
+                        </div>
+                    </div>
+
+                    <div class="security-note">
+                        <i class="fas fa-lock"></i>
+                        LOS MÉTODOS DE PAGO SON MEDIANTE PROVEEDORES AUTORIZADOS, NINGÚN DATO SENSIBLE ES ALMACENADO
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Column: Summary -->
+            <aside class="checkout-summary">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h2>RESUMEN DE COMPRA</h2>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-row">
+                            <span>Cantidad de Becas Donadas</span>
+                            <strong id="summary-qty">1</strong>
+                        </div>
+                        
+                        <div class="summary-row total">
+                            <span>Total a Donar</span>
+                            <span id="summary-total">$0.00</span>
+                        </div>
+
+                        <button id="btn-finish-pay" class="btn-pay">
+                            <i class="fas fa-check-circle"></i>
+                            FINALIZAR PAGO
+                        </button>
+
+                        <p class="terms-text">
+                            Al hacer clic en finalizar pago, aceptas los <a href="#">términos y condiciones</a> de Becas con Propósito.
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <div id="app-footer"></div>
+</body>
+</html>
