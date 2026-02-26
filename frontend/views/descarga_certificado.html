@@ -70,19 +70,251 @@
     </main>
 
     <script src="../js/include-layout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         // Get Transaction ID from URL
         const params = new URLSearchParams(window.location.search);
         const txId = params.get('id');
+        
         if (txId) {
             document.getElementById('transaction-id').textContent = txId;
-            // Simulamos la descarga
-            document.getElementById('download-btn').onclick = (e) => {
-                e.preventDefault();
-                alert('Iniciando descarga del certificado PDF...');
-                // Aquí iría la lógica real de descarga (window.open o fetch blob)
-            };
         }
+
+        // Handle Download Logic
+        const downloadBtn = document.getElementById('download-btn');
+        
+        downloadBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Retrieve HTML from LocalStorage (Individual - New Method)
+            const htmlData = localStorage.getItem('certificate_html');
+
+            // Retrieve PDF from LocalStorage (Individual - Legacy)
+            const pdfData = localStorage.getItem('certificate_pdf');
+            
+            // Retrieve Summary from LocalStorage (Bulk)
+            const summaryDataStr = localStorage.getItem('donation_summary');
+            let summaryData = null;
+            if (summaryDataStr) {
+                try {
+                    summaryData = JSON.parse(summaryDataStr);
+                } catch(err) {
+                    console.error("Error parsing summary", err);
+                }
+            }
+            
+            if (htmlData) {
+                // Generar PDF desde el HTML almacenado
+                const btnOriginalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERANDO PDF...';
+                downloadBtn.style.pointerEvents = 'none';
+
+                try {
+                    const waitForImages = async (root) => {
+                        const images = Array.from(root.querySelectorAll('img'));
+                        if (!images.length) return;
+
+                        await Promise.all(images.map((img) => {
+                            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                            return new Promise((resolve) => {
+                                const done = () => resolve();
+                                img.addEventListener('load', done, { once: true });
+                                img.addEventListener('error', done, { once: true });
+                            });
+                        }));
+                    };
+                    const waitForStyles = async (root) => {
+                        const links = Array.from(root.querySelectorAll('link[rel="stylesheet"]'));
+                        if (!links.length) return;
+
+                        await Promise.all(links.map((link) => {
+                            if (link.sheet) return Promise.resolve();
+                            return new Promise((resolve) => {
+                                const done = () => resolve();
+                                link.addEventListener('load', done, { once: true });
+                                link.addEventListener('error', done, { once: true });
+                            });
+                        }));
+                    };
+
+                    // Crear un contenedor temporal VISIBLE para asegurar renderizado correcto
+                    // Lo mostramos como un overlay sobre la página actual
+                    const container = document.createElement('div');
+                    container.id = 'pdf-generator-container';
+                    container.style.position = 'fixed';
+                    container.style.left = '0';
+                    container.style.top = '0';
+                    container.style.width = '100vw';
+                    container.style.height = '100vh';
+                    container.style.zIndex = '99999'; // Encima de todo
+                    container.style.backgroundColor = '#f0f2f5'; // Mismo fondo que app
+                    container.style.display = 'flex';
+                    container.style.flexDirection = 'column';
+                    container.style.justifyContent = 'center';
+                    container.style.alignItems = 'center';
+                    container.style.overflow = 'auto';
+
+                    // Mensaje de estado visual
+                    const statusMsg = document.createElement('div');
+                    statusMsg.style.marginBottom = '20px';
+                    statusMsg.style.fontSize = '18px';
+                    statusMsg.style.color = '#333';
+                    statusMsg.style.fontFamily = 'sans-serif';
+                    statusMsg.innerHTML = '<i class="fas fa-magic"></i> Preparando tu certificado...';
+                    container.appendChild(statusMsg);
+
+                    // Wrapper específico para el contenido del certificado (A4 Landscape)
+                    const certWrapper = document.createElement('div');
+                    certWrapper.style.width = '1123px'; // ~297mm
+                    certWrapper.style.minHeight = '794px'; // ~210mm
+                    certWrapper.style.backgroundColor = '#ffffff';
+                    certWrapper.style.position = 'relative';
+                    certWrapper.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)'; // Sombra para resaltar
+                    // Escalamos visualmente si la pantalla es pequeña, pero el contenido real mantiene dimensiones
+                    // Parsear el HTML guardado
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlData, 'text/html');
+
+                    // Copiar estilos del HTML guardado (inline + hojas externas)
+                    const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+                    styles.forEach((styleNode) => {
+                        container.appendChild(styleNode.cloneNode(true));
+                    });
+                    const exportOverrides = document.createElement('style');
+                    exportOverrides.textContent = `
+                        .certificate-preview {
+                            border: 0 !important;
+                            outline: 0 !important;
+                            margin: 0 !important;
+                        }
+                    `;
+                    container.appendChild(exportOverrides);
+                    
+                    // Usar primero el wrapper del preview para conservar tema/escala visual
+                    const certNode =
+                        doc.querySelector('.certificate-preview') ||
+                        doc.querySelector('.cert__container') ||
+                        doc.body.firstElementChild;
+                    if (!certNode) {
+                        throw new Error('No se encontro el contenido del certificado para generar el PDF.');
+                    }
+                    certWrapper.appendChild(certNode.cloneNode(true));
+
+                    // Fallback: si por alguna razon persiste placeholder, usar dato de sesion
+                    const recipientNode = certWrapper.querySelector('#cert-recipient, .cert__recipient');
+                    if (recipientNode && recipientNode.textContent.includes('[Nombre')) {
+                        try {
+                            const sessionData = JSON.parse(localStorage.getItem('session_donation_data') || '{}');
+                            const honoree = sessionData?.certificate?.honoreeName;
+                            if (honoree && honoree.trim()) {
+                                recipientNode.textContent = honoree.trim();
+                            }
+                        } catch (_e) {}
+                    }
+                    
+                    container.appendChild(certWrapper);
+                    document.body.appendChild(container);
+
+                    // Tiempo para cargar recursos (imágenes, fuentes)
+                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                    if (document.fonts && document.fonts.ready) {
+                        await document.fonts.ready;
+                    }
+                    await waitForStyles(container);
+                    await waitForImages(certWrapper);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    statusMsg.innerHTML = '<i class="fas fa-file-pdf"></i> Generando archivo PDF...';
+                    const exportWidth = Math.ceil(certWrapper.scrollWidth);
+                    const exportHeight = Math.ceil(certWrapper.scrollHeight);
+                    const exportOrientation = exportWidth >= exportHeight ? 'landscape' : 'portrait';
+
+                    const opt = {
+                        margin:       0,
+                        filename:     `Certificado_Donacion_${txId || 'Provisional'}.pdf`,
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { 
+                            scale: 2, 
+                            useCORS: true, 
+                            backgroundColor: '#ffffff',
+                            letterRendering: true,
+                            scrollX: 0,
+                            scrollY: 0,
+                            width: exportWidth,
+                            height: exportHeight,
+                            windowWidth: exportWidth,
+                            windowHeight: exportHeight
+                        },
+                        jsPDF:        { unit: 'px', format: [exportWidth, exportHeight], orientation: exportOrientation }
+                    };
+
+                    // Generar PDF solo del wrapper del certificado
+                    await html2pdf().set(opt).from(certWrapper).save();
+                    
+                    // Limpieza
+                    document.body.removeChild(container);
+                } catch (error) {
+                    console.error('Error generando PDF:', error);
+                    alert('Hubo un error al generar el PDF. Por favor intente nuevamente.');
+                } finally {
+                    downloadBtn.innerHTML = btnOriginalText;
+                    downloadBtn.style.pointerEvents = 'auto';
+                }
+
+            } else if (pdfData) {
+                // If it's a data URI, we can download it directly
+                // Create a temporary link to force download with proper name
+                const link = document.createElement('a');
+                link.href = pdfData;
+                link.download = `Certificado_Donacion_${txId || 'Provisional'}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else if (summaryData && summaryData.type === 'bulk') {
+                e.preventDefault();
+                // Generate PDF on the fly for Bulk Donation Summary
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: 'letter'
+                });
+                
+                // Add Logo/Header if possible (simplified for now)
+                doc.setFontSize(22);
+                doc.setTextColor(40, 167, 69); // Green
+                doc.text("Comprobante de Donación Masiva", 105, 30, null, null, "center");
+                
+                doc.setDrawColor(0);
+                doc.line(20, 35, 190, 35);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`ID de Transacción: ${summaryData.transactionId}`, 20, 50);
+                doc.text(`Fecha: ${summaryData.date}`, 20, 60);
+                
+                doc.setFontSize(14);
+                doc.text("Resumen de la Operación", 20, 80);
+                
+                doc.setFontSize(12);
+                doc.text(`Total Donado: $${parseFloat(summaryData.totalAmount).toFixed(2)} MXN`, 20, 95);
+                doc.text(`Cantidad de Beneficiarios: ${summaryData.count}`, 20, 105);
+                
+                doc.text("Gracias por su generosa contribución a Becas Con Propósito.", 20, 130);
+                doc.text("Los certificados individuales han sido procesados.", 20, 140);
+                
+                // Footer
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                doc.text("Este documento es un comprobante de la transacción realizada.", 105, 280, null, null, "center");
+                
+                doc.save(`Comprobante_Masivo_${summaryData.transactionId}.pdf`);
+                
+            } else {
+                e.preventDefault();
+                alert('Lo sentimos, no se encontró el archivo del certificado. Puede haber expirado o no se generó correctamente.');
+            }
+        });
     </script>
 </body>
 </html>

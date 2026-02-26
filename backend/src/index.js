@@ -12,7 +12,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Helper to map object keys based on schema columns
 const mapToDb = (data, schemaColumns) => {
@@ -177,15 +178,10 @@ app.post('/api/donations/process', async (req, res) => {
         }
         
         // CORRECCIÓN BASADA EN CHECK CONSTRAINT DE LA BASE DE DATOS:
-        // El constraint "donations_target_chk" exige que si target_type = 'group',
-        // entonces 'representative_group_id' NO DEBE SER NULL.
-        // Y los otros IDs deben ser NULL.
-        
         if (donationData.target_type === 'group' && !donationData.representative_group_id) {
              console.warn("Target type is 'group' but representative_group_id is missing. Defaulting to 'general' to avoid DB constraint violation.");
              donationData.target_type = 'general';
         }
-        // Aplica la misma lógica para otros tipos si fuera necesario
         if (donationData.target_type === 'student_internal' && !donationData.student_beneficiary_id) donationData.target_type = 'general';
         if (donationData.target_type === 'student_external' && !donationData.external_person_id) donationData.target_type = 'general';
         if (donationData.target_type === 'facility' && !donationData.facility_id) donationData.target_type = 'general';
@@ -225,6 +221,122 @@ app.post('/api/donations/process', async (req, res) => {
 
     } catch (error) {
         console.error('Error procesando donación:', error);
+        res.status(500).json({ success: false, message: error.message || 'Error interno del servidor' });
+    }
+});
+
+// Process Bulk Donation Route
+app.post('/api/donations/process-bulk', async (req, res) => {
+    try {
+        const { donor, billingDetails, donations, totalAmount } = req.body;
+
+        if (!donor || !donations || !Array.isArray(donations) || donations.length === 0) {
+            return res.status(400).json({ success: false, message: 'Datos incompletos o inválidos para carga masiva' });
+        }
+
+        console.log(`Procesando carga masiva de ${donations.length} donaciones. Total: ${totalAmount}`);
+
+        // 1. Insert Donor (Once)
+        const donorData = mapToDb(donor, donorSchema.columns);
+        if (!donorData.created_at) donorData.created_at = new Date().toISOString();
+
+        const { data: savedDonor, error: donorError } = await supabase
+            .from(TABLES.DONOR)
+            .insert(donorData)
+            .select()
+            .single();
+
+        if (donorError) throw new Error(`Error saving donor: ${donorError.message}`);
+        const donorId = savedDonor.donor_id;
+
+        // 2. Insert Billing Details (Once, if provided)
+        if (billingDetails) {
+            const billingData = mapToDb(billingDetails, billingDetailsSchema.columns);
+            billingData.donor_id = donorId;
+            if (!billingData.created_at) billingData.created_at = new Date().toISOString();
+
+            const { error: billingError } = await supabase
+                .from(TABLES.BILLING_DETAILS)
+                .insert(billingData);
+            
+            if (billingError) throw new Error(`Error saving billing details: ${billingError.message}`);
+        }
+
+        // 3. Process each donation
+        // Note: For better performance, we should use bulk insert, but we need donation_id for certificates.
+        // So we will loop or use Promise.all. Promise.all is faster but harder to rollback.
+        
+        const results = [];
+        const errors = [];
+
+        // Helper to normalize target_type
+        const normalizeTargetType = (dData) => {
+             const validTargetTypes = ['general', 'student_internal', 'student_external', 'group', 'facility', 'program'];
+             if (!validTargetTypes.includes(dData.target_type)) return 'general';
+             if (dData.target_type === 'group' && !dData.representative_group_id) return 'general';
+             if (dData.target_type === 'student_internal' && !dData.student_beneficiary_id) return 'general';
+             if (dData.target_type === 'student_external' && !dData.external_person_id) return 'general';
+             if (dData.target_type === 'facility' && !dData.facility_id) return 'general';
+             if (dData.target_type === 'program' && !dData.social_program_id) return 'general';
+             return dData.target_type;
+        };
+
+        for (const item of donations) {
+            try {
+                // Insert Donation
+                const donationData = mapToDb(item.donation, donationsSchema.columns);
+                donationData.donor_id = donorId;
+                donationData.payment_status = 'succeeded';
+                donationData.paid_at = new Date().toISOString();
+                if (!donationData.created_at) donationData.created_at = new Date().toISOString();
+                
+                donationData.target_type = normalizeTargetType(donationData);
+
+                const { data: savedDonation, error: donationError } = await supabase
+                    .from(TABLES.DONATIONS)
+                    .insert(donationData)
+                    .select()
+                    .single();
+
+                if (donationError) throw new Error(donationError.message);
+                
+                const donationId = savedDonation.donation_id;
+
+                // Insert Certificate
+                if (item.certificate) {
+                    const certificateData = mapToDb(item.certificate, certificatesSchema.columns);
+                    certificateData.donation_id = donationId;
+                    if (!certificateData.created_at) certificateData.created_at = new Date().toISOString();
+
+                    const { error: certError } = await supabase
+                        .from(TABLES.CERTIFICATES)
+                        .insert(certificateData);
+                    
+                    if (certError) console.warn(`Error saving certificate for donation ${donationId}:`, certError);
+                }
+                
+                results.push(donationId);
+
+            } catch (err) {
+                console.error('Error processing item in bulk:', err);
+                errors.push(err.message);
+            }
+        }
+
+        if (results.length === 0 && errors.length > 0) {
+            throw new Error(`Fallo total en carga masiva: ${errors[0]}`);
+        }
+
+        res.json({
+            success: true,
+            message: `Procesadas ${results.length} de ${donations.length} donaciones.`,
+            transactionId: results[0], // Return first ID as reference
+            count: results.length,
+            errors: errors.length > 0 ? errors : null
+        });
+
+    } catch (error) {
+        console.error('Error procesando carga masiva:', error);
         res.status(500).json({ success: false, message: error.message || 'Error interno del servidor' });
     }
 });

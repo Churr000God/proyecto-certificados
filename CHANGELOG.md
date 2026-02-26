@@ -80,6 +80,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.9.1] - 2026-02-26
+
+### Corregido
+- **Frontend (Descarga de Certificados):**
+  - Solución al problema de generación de PDFs en blanco en `frontend/views/descarga_certificado.html`.
+  - Implementación de renderizado en contenedor visible (overlay con `z-index` alto) para asegurar la captura correcta por `html2pdf.js`.
+  - Añadida lógica de espera (`waitForImages`, `waitForStyles`) para garantizar la carga de recursos antes de la generación.
+  - Ajuste de configuración `html2canvas` (escala, windowWidth) para evitar cortes en el PDF.
+
+### Agregado
+- **Backend:**
+  - Aumento del límite de payload a 50MB en `express.json` y `express.urlencoded` (`backend/src/index.js`) para soportar la subida de certificados en Base64.
+- **Frontend:**
+  - Integración de `html2pdf.js` en `descarga_certificado.html`.
+  - Refactorización de `donacion-individual.js` para generar HTML intermedio en lugar de PDF directo.
+
 ## [1.9.0] - 2026-02-24
 
 ### Agregado

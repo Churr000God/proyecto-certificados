@@ -174,64 +174,69 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Preparar datos de donación desde localStorage
-        let finalDonationData = { ...donationData }; // Copia base
+        let payload;
         
-        // Normalizar claves para asegurar compatibilidad con el esquema del backend (camelCase)
-        // Si existe cause_id (legacy), lo mapeamos a causeId
-        if (finalDonationData.donation.cause_id && !finalDonationData.donation.causeId) {
-            finalDonationData.donation.causeId = finalDonationData.donation.cause_id;
-        }
-        if (finalDonationData.donation.cause_name && !finalDonationData.donation.causeName) {
-            finalDonationData.donation.causeName = finalDonationData.donation.cause_name;
-        }
-        if (finalDonationData.donation.target_type && !finalDonationData.donation.targetType) {
-            finalDonationData.donation.targetType = finalDonationData.donation.target_type;
-        }
-        if (finalDonationData.donation.specific_topic_id && !finalDonationData.donation.specificTopicId) {
-            finalDonationData.donation.specificTopicId = finalDonationData.donation.specific_topic_id;
-        }
-        // Mapear IDs específicos si están en snake_case
-        ['student_beneficiary_id', 'external_person_id', 'representative_group_id', 'facility_id', 'social_program_id'].forEach(key => {
-            const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-            if (finalDonationData.donation[key] && !finalDonationData.donation[camelKey]) {
-                finalDonationData.donation[camelKey] = finalDonationData.donation[key];
+        if (donationData.type === 'corporate_bulk') {
+            // LÓGICA PARA CARGA MASIVA
+            payload = {
+                donor: donorData,
+                billingDetails: billingData,
+                totalAmount: donationData.totalAmount,
+                donations: donationData.records.map(record => {
+                    const d = { ...record.donation };
+                    // Normalizar claves si es necesario (aunque en bulk ya vienen bien estructuradas)
+                    return {
+                        donation: d,
+                        certificate: record.certificate
+                    };
+                })
+            };
+        } else {
+            // LÓGICA PARA DONACIÓN INDIVIDUAL / CORPORATIVA SIMPLE
+            let finalDonationData = { ...donationData }; // Copia base
+            
+            // Normalizar claves para asegurar compatibilidad con el esquema del backend (camelCase)
+            if (finalDonationData.donation) {
+                if (finalDonationData.donation.cause_id && !finalDonationData.donation.causeId) {
+                    finalDonationData.donation.causeId = finalDonationData.donation.cause_id;
+                }
+                if (finalDonationData.donation.cause_name && !finalDonationData.donation.causeName) {
+                    finalDonationData.donation.causeName = finalDonationData.donation.cause_name;
+                }
+                if (finalDonationData.donation.target_type && !finalDonationData.donation.targetType) {
+                    finalDonationData.donation.targetType = finalDonationData.donation.target_type;
+                }
+                if (finalDonationData.donation.specific_topic_id && !finalDonationData.donation.specificTopicId) {
+                    finalDonationData.donation.specificTopicId = finalDonationData.donation.specific_topic_id;
+                }
+                // Mapear IDs específicos si están en snake_case
+                ['student_beneficiary_id', 'external_person_id', 'representative_group_id', 'facility_id', 'social_program_id'].forEach(key => {
+                    const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+                    if (finalDonationData.donation[key] && !finalDonationData.donation[camelKey]) {
+                        finalDonationData.donation[camelKey] = finalDonationData.donation[key];
+                    }
+                });
             }
-        });
-        
-        // CORRECCIÓN PARA PASAR ID ESPECÍFICO SEGÚN TARGET_TYPE
-        // El backend espera 'representative_group_id' si target_type es 'group', etc.
-        // En `donation` a veces viene como `specificTopicId` o `specific_topic_id` con formato 'tecmi:equipos-deportivos'
-        // Pero necesitamos un ID válido (UUID) para la base de datos si vamos a usar los constraints.
-        // POR AHORA: Si no tenemos un ID real de la base de datos para estos grupos,
-        // debemos enviar target_type='general' O asegurarnos de que el backend lo maneje.
-        // Sin embargo, si el usuario seleccionó un grupo específico, deberíamos intentar mapearlo.
-        
-        // Si specificTopicId es un string arbitrario (no UUID), la DB fallará si espera UUID en representative_group_id.
-        // Asumiremos que por ahora, para evitar el error 500, si no es un UUID válido,
-        // dejamos que el backend lo convierta a 'general' o lo manejamos aquí.
-        
-        // Pero para solucionar el problema inmediato del usuario:
-        // Aseguramos que si targetType es 'group', representativeGroupId tenga valor (aunque sea null, el backend lo forzará a general)
-        // O mejor, si tenemos un ID válido, lo pasamos.
-        
-        const payload = {
-            donor: donorData,
-            billingDetails: billingData,
-            donation: {
-                ...finalDonationData.donation, // amount, causeId, etc.
-                paymentStatus: 'pending', // Inicialmente pendiente
-                paidAt: null
-            },
-            certificate: finalDonationData.certificate
-        };
-        
-        // Validar que causeId esté presente
-        if (!payload.donation.causeId) {
-            alert('Error: No se ha seleccionado una causa válida. Por favor vuelve al inicio.');
-            console.error('Missing causeId in payload:', payload);
-            btnFinishPay.disabled = false;
-            btnFinishPay.innerHTML = originalBtnContent;
-            return;
+            
+            payload = {
+                donor: donorData,
+                billingDetails: billingData,
+                donation: {
+                    ...finalDonationData.donation, // amount, causeId, etc.
+                    paymentStatus: 'pending', // Inicialmente pendiente
+                    paidAt: null
+                },
+                certificate: finalDonationData.certificate
+            };
+            
+            // Validar que causeId esté presente
+            if (!payload.donation.causeId) {
+                alert('Error: No se ha seleccionado una causa válida. Por favor vuelve al inicio.');
+                console.error('Missing causeId in payload:', payload);
+                btnFinishPay.disabled = false;
+                btnFinishPay.innerHTML = originalBtnContent;
+                return;
+            }
         }
 
         // 3. Guardar en LocalStorage (Simulando persistencia temporal)
@@ -239,8 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // DEBUG: Mostrar JSONs en consola
         console.log('--- DEBUG: JSONs en LocalStorage ---');
-        console.log('session_donation_data:', JSON.parse(localStorage.getItem('session_donation_data')));
-        console.log('corporate_session_data:', JSON.parse(localStorage.getItem('corporate_session_data')));
         console.log('pending_transaction:', payload);
         console.log('------------------------------------');
 
@@ -249,16 +252,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btnFinishPay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VERIFICANDO...';
 
         try {
-            // 3.5 Verificar Límite de Donación
-            const checkResponse = await fetch('http://localhost:3000/api/donations/check-limit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const checkResult = await checkResponse.json();
-            if (!checkResponse.ok) {
-                throw new Error(checkResult.message || 'Límite de donación excedido');
+            // 3.5 Verificar Límite de Donación (Solo para individual por ahora)
+            if (donationData.type !== 'corporate_bulk') {
+                const checkResponse = await fetch('http://localhost:3000/api/donations/check-limit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+    
+                const checkResult = await checkResponse.json();
+                if (!checkResponse.ok) {
+                    throw new Error(checkResult.message || 'Límite de donación excedido');
+                }
             }
 
             // 4. Simular Pasarela de Pago
@@ -268,15 +273,21 @@ document.addEventListener('DOMContentLoaded', () => {
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Mostrar Modal de "Pasarela de Pago" (Simulado)
-            const paymentSuccess = await showPaymentGatewayModal(donationData.donation ? donationData.donation.amount : 0);
+            const amountToPay = donationData.type === 'corporate_bulk' 
+                ? (donationData.totalAmount || 0) 
+                : (donationData.donation ? donationData.donation.amount : 0);
+
+            const paymentSuccess = await showPaymentGatewayModal(amountToPay);
 
             if (paymentSuccess) {
                 btnFinishPay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO TRANSACCIÓN...';
                 
                 // 5. Enviar al Backend
-                // Nota: Usamos una URL relativa asumiendo que el backend sirve esto o hay proxy
-                // Si no, cambiar a http://localhost:3000/api/donations/process
-                const response = await fetch('http://localhost:3000/api/donations/process', {
+                const endpoint = donationData.type === 'corporate_bulk'
+                    ? 'http://localhost:3000/api/donations/process-bulk'
+                    : 'http://localhost:3000/api/donations/process';
+
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -288,6 +299,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok && result.success) {
                     // Éxito
+                    
+                    // Si es carga masiva, guardamos un resumen para el certificado
+                    if (donationData.type === 'corporate_bulk') {
+                        const summary = {
+                            type: 'bulk',
+                            count: result.count || payload.donations.length,
+                            totalAmount: payload.totalAmount,
+                            transactionId: result.transactionId,
+                            date: new Date().toLocaleDateString()
+                        };
+                        localStorage.setItem('donation_summary', JSON.stringify(summary));
+                    }
+
                     localStorage.removeItem('corporate_session_data');
                     localStorage.removeItem('session_donation_data');
                     localStorage.removeItem('pending_transaction');

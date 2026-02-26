@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear session data on load to avoid conflicts
     localStorage.removeItem('session_donation_data');
     localStorage.removeItem('corporate_session_data');
-    // localStorage.removeItem('certificate_pdf'); // Removed as we don't use it anymore
+    localStorage.removeItem('certificate_pdf'); // Clear old certificate
 
     // DOM Elements
     const topicsContainer = document.getElementById('topics-container');
@@ -547,55 +547,103 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('session_donation_data', JSON.stringify(sessionData));
     }
 
-    async function generateCertificatePDF() {
+    async function generateCertificateHTML() {
         if (!state.recipientName) return;
-        
-        // Wait for libraries to load if not ready (simple check)
-        if (!window.html2canvas || !window.jspdf) {
-            alert('Las bibliotecas de PDF aún se están cargando. Por favor espere un momento.');
-            return;
+        const previewElement = document.getElementById('certificate-preview');
+        if (!previewElement) {
+            throw new Error('No se encontro la vista previa del certificado.');
         }
 
-        const element = document.querySelector('.cert__container');
-        
+        const originalElement = previewElement.querySelector('.cert__container');
+        if (!originalElement) {
+            throw new Error('No se encontro el contenido del certificado.');
+        }
+
+        // Clonamos exactamente el nodo que se muestra en la vista previa.
+        const clone = originalElement.cloneNode(true);
+
+        // Refuerzo defensivo: siempre forzar el nombre actual en el clon.
+        const cloneRecipient = clone.querySelector('#cert-recipient, .cert__recipient');
+        if (cloneRecipient) {
+            cloneRecipient.textContent = state.recipientName;
+        }
+
+        // Convertir logo a base64 para evitar fallos de carga en la siguiente vista.
+        const logoImg = clone.querySelector('.cert__logo');
+        if (logoImg) {
+            try {
+                const originalLogo = originalElement.querySelector('.cert__logo');
+                if (originalLogo && originalLogo.complete && originalLogo.naturalWidth > 0) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = originalLogo.naturalWidth;
+                    canvas.height = originalLogo.naturalHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(originalLogo, 0, 0);
+                    logoImg.src = canvas.toDataURL('image/png');
+                } else if (state.hasCustomLogo && state.logoUrl) {
+                    logoImg.src = state.logoUrl;
+                }
+            } catch (e) {
+                console.warn('Could not convert logo to base64', e);
+            }
+        }
+
+        const themeClass = state.selectedTheme && state.selectedTheme.themeClass
+            ? state.selectedTheme.themeClass
+            : 'cert-theme-program';
+
+        // Se usan los estilos reales del preview para que coincida visualmente.
+        const fullHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado de Generosidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/style_donacioni.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .certificate-preview {
+            width: 1123px !important;
+            min-height: 794px !important;
+            max-width: none !important;
+            border: 12px solid #fff;
+            outline: 1px solid #edf2f7;
+            box-sizing: border-box;
+        }
+        .certificate-preview .cert__container {
+            width: 100%;
+            min-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-preview ${themeClass}">
+        ${clone.outerHTML}
+    </div>
+</body>
+</html>`;
+
         try {
-            // Generate canvas from HTML
-            const canvas = await html2canvas(element, {
-                scale: 1, // Reduced resolution to fix QuotaExceededError
-                useCORS: true,
-                logging: false,
-                backgroundColor: null
-            });
+            // Save the HTML string to localStorage
+            localStorage.setItem('certificate_html', fullHtml);
+            // Clear any old PDF to avoid confusion
+            localStorage.removeItem('certificate_pdf');
             
-            const imgData = canvas.toDataURL('image/png');
-            
-            // Create PDF
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'letter'
-            });
-            
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            
-            // Center vertically
-            const y = (pdf.internal.pageSize.getHeight() - pdfHeight) / 2;
-            
-            pdf.addImage(imgData, 'PNG', 0, y > 0 ? y : 0, pdfWidth, pdfHeight);
-            
-            // PDF Generation logic completed
-            // We do NOT save the PDF to localStorage anymore to avoid QuotaExceededError
-            // The PDF can be regenerated if needed, or passed via Blob/URL if immediate download is required.
-            
-            console.log('PDF generado exitosamente (en memoria)');
-            
+            console.log('Certificado HTML generado y guardado en localStorage');
             return true;
-        } catch (error) {
-            console.error('Error generando PDF:', error);
-            throw error;
+        } catch (e) {
+            console.error('Error guardando HTML en localStorage:', e);
+            throw e;
         }
     }
 
@@ -612,8 +660,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure latest data is saved
             updateSessionData();
             
-            // Generate PDF
-            await generateCertificatePDF();
+            // Generate HTML
+            await generateCertificateHTML();
             
             // Navigate to next step
             // alert('¡Listo! Datos guardados y certificado generado. Procediendo al pago...');
