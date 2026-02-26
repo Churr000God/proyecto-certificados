@@ -411,10 +411,10 @@ main.hero-page {
   pointer-events: none;
 }
 .donor__option--individual{
-  background: url('../assets/IMAGEN_TECMILENIO.jpg') center/cover no-repeat;
+  background: url('../assets/Donacionindividual.png') center/cover no-repeat;
 }
 .donor__option--corporate{
-  background: url('../assets/IMAGEN_TECMILENIO.jpg') center/cover no-repeat;
+  background: url('../assets/Donacion corporativa.png') center/cover no-repeat;
   filter: saturate(.9);
 }
 .donor__content{
