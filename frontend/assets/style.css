@@ -67,6 +67,7 @@ main.hero-page {
     min-height: 70vh;
     background-color: var(--primary-color);
     color: var(--white-color);
+    min-height: 50vw;
 
     /* --- SOLUCIÓN AL BUG --- */
     background-image: url("../assets/img/img-principal.png");
