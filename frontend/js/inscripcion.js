@@ -164,11 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const billingData = {
-            taxId: document.getElementById('fiscal-rfc').value,
-            legalName: document.getElementById('fiscal-name').value,
-            postalCode: document.getElementById('fiscal-cp').value,
-            address: document.getElementById('fiscal-address').value, 
-            fiscalEmail: document.getElementById('fiscal-email').value, // Agregado para validación
+            taxId: document.getElementById('fiscal-rfc').value.trim(),
+            legalName: document.getElementById('fiscal-name').value.trim(),
+            postalCode: document.getElementById('fiscal-cp').value.trim(),
+            address: document.getElementById('fiscal-address').value.trim(), 
+            fiscalEmail: document.getElementById('fiscal-email').value.trim(), // Agregado para validación
             taxRegime: '601', // Valor por defecto o agregar campo
             createdAt: new Date().toISOString()
         };
@@ -226,8 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     paymentStatus: 'pending', // Inicialmente pendiente
                     paidAt: null
                 },
+                beneficiaryData: finalDonationData.beneficiaryData, // ADDED: Datos del beneficiario
                 certificate: finalDonationData.certificate
             };
+
+            // Asegurar que el certificado tenga nombre
+            if (payload.certificate && !payload.certificate.honoreeName) {
+                payload.certificate.honoreeName = donorData.fullNameDonor || 'A quien corresponda';
+            }
             
             // Validar que causeId esté presente
             if (!payload.donation.causeId) {

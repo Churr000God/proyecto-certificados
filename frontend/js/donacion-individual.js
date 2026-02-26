@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Schema Definitions matching backend/src/db/schema.js
     const BENEFICIARY_SCHEMAS = {
-        'student': {
+        'student_internal': {
             label: 'Estudiante',
             fields: [
                 { name: 'studentName', label: 'Nombre Completo del Estudiante', type: 'text', placeholder: 'Ej. Juan Pérez', required: true },
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { name: 'name', label: 'Nombre del Programa', type: 'text', placeholder: 'Ej. Líderes del Mañana', required: true }
             ]
         },
-        'external_person': {
+        'student_external': {
             label: 'Persona Externa',
             fields: [
                 { name: 'fullName', label: 'Nombre Completo', type: 'text', placeholder: 'Ej. María García', required: true },
@@ -294,12 +294,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Becas -> Student
         if (lowerName.includes('beca')) {
-            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', targetType: 'student', themeClass: 'cert-theme-becas' };
+            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', targetType: 'student_internal', themeClass: 'cert-theme-becas' };
         }
         
         // Salud / Medicina -> External Person
         if (lowerName.includes('salud') || lowerName.includes('medicina') || lowerName.includes('hospital') || lowerName.includes('cirugía') || lowerName.includes('prevención')) {
-            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', targetType: 'external_person', themeClass: 'cert-theme-salud' };
+            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', targetType: 'student_external', themeClass: 'cert-theme-salud' };
         }
         
         // Infraestructura / Instalaciones -> Facility
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         beneficiaryFieldsContainer.innerHTML = '';
         state.beneficiaryData = {}; // Reset data
 
-        const schema = BENEFICIARY_SCHEMAS[type] || BENEFICIARY_SCHEMAS['student'];
+        const schema = BENEFICIARY_SCHEMAS[type] || BENEFICIARY_SCHEMAS['student_internal'];
         
         const title = document.createElement('h4');
         title.textContent = `Datos para ${schema.label}`;
@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!state.selectedTheme) return false;
         
         const type = determineTargetType();
-        const schema = BENEFICIARY_SCHEMAS[type] || BENEFICIARY_SCHEMAS['student'];
+        const schema = BENEFICIARY_SCHEMAS[type] || BENEFICIARY_SCHEMAS['student_internal'];
         
         // Check if all required fields in schema are present in state.beneficiaryData and not empty
         for (const field of schema.fields) {

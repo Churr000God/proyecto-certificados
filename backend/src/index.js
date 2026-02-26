@@ -122,7 +122,7 @@ app.post('/api/donations/check-limit', async (req, res) => {
 // Process Donation Route
 app.post('/api/donations/process', async (req, res) => {
     try {
-        const { donor, billingDetails, donation, certificate } = req.body;
+        const { donor, billingDetails, donation, certificate, beneficiaryData } = req.body;
 
         // 1. Validar datos mínimos
         if (!donor || !donation || !donation.amount) {
@@ -165,6 +165,107 @@ app.post('/api/donations/process', async (req, res) => {
         donationData.payment_status = 'succeeded';
         donationData.paid_at = new Date().toISOString();
         if (!donationData.created_at) donationData.created_at = new Date().toISOString();
+
+        // --- Handle Beneficiary Creation if data provided ---
+        if (beneficiaryData && beneficiaryData.data) {
+            const bData = beneficiaryData.data;
+            const bType = beneficiaryData.type; 
+
+            // Fetch Brand ID if needed
+            let brandId = null;
+            if (donationData.cause_id) {
+                const { data: cause } = await supabase
+                    .from(TABLES.CAUSES)
+                    .select('brand_id')
+                    .eq('cause_id', donationData.cause_id)
+                    .single();
+                if (cause) brandId = cause.brand_id;
+            }
+
+            try {
+                if (bType === 'student_internal') {
+                    const { data: newBen, error: benError } = await supabase
+                        .from(TABLES.STUDENT_BENEFICIARIES)
+                        .insert({
+                            student_name: bData.studentName,
+                            student_id: bData.studentId,
+                            campus: bData.campus,
+                            brand_id: brandId,
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+                    if (benError) throw benError;
+                    donationData.student_beneficiary_id = newBen.student_beneficiary_id;
+                    donationData.target_type = 'student_internal';
+                } else if (bType === 'student_external') {
+                    const { data: newBen, error: benError } = await supabase
+                        .from(TABLES.EXTERNAL_PERSONS)
+                        .insert({
+                            full_name: bData.fullName,
+                            email: bData.email,
+                            phone_number: bData.phoneNumber,
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+                    if (benError) throw benError;
+                    donationData.external_person_id = newBen.external_person_id;
+                    donationData.target_type = 'student_external';
+                } else if (bType === 'group') {
+                    const { data: newBen, error: benError } = await supabase
+                        .from(TABLES.REPRESENTATIVE_GROUPS)
+                        .insert({
+                            name: bData.name,
+                            category: bData.category,
+                            campus: bData.campus,
+                            brand_id: brandId,
+                            cause_id: donationData.cause_id,
+                            is_active: true,
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+                    if (benError) throw benError;
+                    donationData.representative_group_id = newBen.group_id;
+                    donationData.target_type = 'group';
+                } else if (bType === 'facility') {
+                    const { data: newBen, error: benError } = await supabase
+                        .from(TABLES.FACILITIES)
+                        .insert({
+                            name: bData.name,
+                            campus: bData.campus,
+                            brand_id: brandId,
+                            cause_id: donationData.cause_id,
+                            is_active: true,
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+                    if (benError) throw benError;
+                    donationData.facility_id = newBen.facility_id;
+                    donationData.target_type = 'facility';
+                } else if (bType === 'program') {
+                    const { data: newBen, error: benError } = await supabase
+                        .from(TABLES.SOCIAL_PROGRAMS)
+                        .insert({
+                            name: bData.name,
+                            brand_id: brandId,
+                            cause_id: donationData.cause_id,
+                            is_active: true,
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+                    if (benError) throw benError;
+                    donationData.social_program_id = newBen.program_id;
+                    donationData.target_type = 'program';
+                }
+            } catch (benErr) {
+                console.warn('Error creating beneficiary, proceeding with general donation:', benErr.message);
+                donationData.target_type = 'general';
+            }
+        }
 
         // Validar target_type con el ENUM
         const validTargetTypes = ['general', 'student_internal', 'student_external', 'group', 'facility', 'program'];

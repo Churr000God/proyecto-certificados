@@ -1,0 +1,363 @@
+/* BF.css - Estilos para la página de Beneficio Fiscal */
+
+/* =========================================
+   Variables y Configuración Base
+   ========================================= */
+   .bf-main {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* =========================================
+   Hero Section
+   ========================================= */
+.bf-hero {
+    position: relative;
+    width: 100%;
+    min-height: 500px;
+    background-image: url('../assets/img/img-principal.png'); /* Fallback/Default */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    color: var(--white-color);
+    margin-bottom: 3rem;
+}
+
+.bf-hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(6,30,41,0.9) 0%, rgba(6,30,41,0.7) 50%, rgba(6,30,41,0.2) 100%);
+    z-index: 1;
+}
+
+.bf-hero__content {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    padding: 2rem;
+    margin: 0 auto;
+}
+
+.bf-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.bf-hero__title {
+    font-size: 3rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.text-highlight {
+    color: var(--light-color);
+}
+
+.bf-hero__text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+/* =========================================
+   Process Section (Pasos)
+   ========================================= */
+.bf-process {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.bf-section-header {
+    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.bf-section-title {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.bf-separator {
+    width: 60px;
+    height: 4px;
+    background-color: var(--secondary-color);
+    margin: 1rem 0;
+    border-radius: 2px;
+}
+
+.bf-section-subtitle {
+    color: #666;
+    font-size: 1rem;
+    max-width: 700px;
+}
+
+.bf-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.bf-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+}
+
+.bf-step__icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background-color: #f0f4f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.bf-step:hover .bf-step__icon-wrapper {
+    transform: scale(1.1);
+    background-color: var(--secondary-color);
+}
+
+.bf-step__icon {
+    font-size: 2rem;
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+}
+
+.bf-step:hover .bf-step__icon {
+    color: var(--white-color);
+}
+
+.bf-step__title {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.bf-step__desc {
+    color: #555;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+/* =========================================
+   Info Cards Section
+   ========================================= */
+.bf-info {
+    padding: 2rem 1.5rem;
+    background-color: #fff;
+    margin-bottom: 4rem;
+}
+
+.bf-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.bf-card {
+    background-color: #f9fbfb;
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    align-items: flex-start;
+}
+
+.bf-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    border-color: var(--secondary-color);
+}
+
+.bf-card__icon-box {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bf-card:nth-child(2) .bf-card__icon-box,
+.bf-card:nth-child(3) .bf-card__icon-box {
+    background-color: var(--secondary-color);
+}
+
+.bf-card__icon {
+    font-size: 1.5rem;
+    color: var(--white-color);
+}
+
+.bf-card__content {
+    flex: 1;
+}
+
+.bf-card__title {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+
+.bf-card__text {
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* =========================================
+   FAQ Section
+   ========================================= */
+.bf-faq {
+    background-color: #eef2f3;
+    padding: 4rem 1.5rem;
+}
+
+.bf-accordion {
+    max-width: 800px;
+    margin: 0 auto 3rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bf-details {
+    background-color: var(--white-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.bf-summary {
+    padding: 1.2rem 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none; /* Ocultar triángulo default */
+    transition: background-color 0.2s ease;
+}
+
+.bf-summary::-webkit-details-marker {
+    display: none;
+}
+
+.bf-summary:hover {
+    background-color: #f8f9fa;
+}
+
+.bf-summary__icon {
+    color: var(--secondary-color);
+    transition: transform 0.3s ease;
+}
+
+.bf-details[open] .bf-summary__icon {
+    transform: rotate(45deg);
+}
+
+.bf-details__content {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    color: #555;
+    line-height: 1.6;
+    border-top: 1px solid #eee;
+}
+
+/* =========================================
+   Compliance Notice
+   ========================================= */
+.bf-compliance {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #e8e8e8; /* Color grisáceo/neutro */
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    border-left: 5px solid var(--secondary-color);
+}
+
+.bf-compliance__icon {
+    font-size: 1.5rem;
+    color: #555;
+    margin-top: 0.2rem;
+}
+
+.bf-compliance__text {
+    font-size: 0.9rem;
+    color: #444;
+    line-height: 1.5;
+}
+
+.bf-compliance__text strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #222;
+    text-transform: uppercase;
+}
+
+/* =========================================
+   Media Queries
+   ========================================= */
+@media (max-width: 768px) {
+    .bf-hero__title {
+        font-size: 2rem;
+    }
+    
+    .bf-hero {
+        min-height: 400px;
+        text-align: center;
+    }
+
+    .bf-hero__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bf-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bf-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}

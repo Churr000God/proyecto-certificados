@@ -87,12 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Becas -> Student
         if (lowerName.includes('beca')) {
-            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', themeClass: 'cert-theme-becas', targetType: 'student' };
+            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', themeClass: 'cert-theme-becas', targetType: 'student_internal' };
         }
         
         // Salud / Medicina -> External Person
         if (lowerName.includes('salud') || lowerName.includes('medicina') || lowerName.includes('hospital') || lowerName.includes('cirugía') || lowerName.includes('prevención')) {
-            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', themeClass: 'cert-theme-salud', targetType: 'external_person' };
+            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', themeClass: 'cert-theme-salud', targetType: 'student_external' };
         }
         
         // Infraestructura / Instalaciones -> Facility
@@ -102,12 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Equipo / Deporte / Cultura -> Group
         if (lowerName.includes('equipo') || lowerName.includes('deporte') || lowerName.includes('cultural') || lowerName.includes('borregos')) {
-            return { icon: '🏆', color: '#f39c12', logo: '../assets/equipo.png', themeClass: 'cert-theme-equipo', targetType: 'representative_group' };
+            return { icon: '🏆', color: '#f39c12', logo: '../assets/equipo.png', themeClass: 'cert-theme-equipo', targetType: 'group' };
         }
         
         // Comunidad / Social / Voluntariado -> Program
         if (lowerName.includes('comunidad') || lowerName.includes('social') || lowerName.includes('voluntariado') || lowerName.includes('sustentabilidad')) {
-            return { icon: '🤝', color: '#9b59b6', logo: '../assets/equipo.png', themeClass: 'cert-theme-program', targetType: 'social_program' }; 
+            return { icon: '🤝', color: '#9b59b6', logo: '../assets/equipo.png', themeClass: 'cert-theme-program', targetType: 'program' }; 
         }
 
         // Default

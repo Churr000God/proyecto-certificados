@@ -80,6 +80,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.9.2] - 2026-02-26
+
+### Corregido
+- **Backend:** Solucionado error 500 en `POST /api/donations/process` al crear donaciones con beneficiarios específicos (estudiantes, grupos, etc.).
+- **Frontend:** Alineación de `target_type` en formularios de donación con los ENUMs de la base de datos (`student_internal`, `student_external`, `group`).
+- **Base de Datos:** Implementación de lógica "Just-In-Time" para crear registros en tablas de beneficiarios (`student_beneficiaries`, `representative_groups`) antes de insertar la donación.
+
+### Agregado
+- **DevOps:** Scripts de automatización `setup.bat` (Windows) y `setup.sh` (Linux/Mac) para:
+  - Instalación de dependencias.
+  - Limpieza de contenedores e imágenes huérfanas.
+  - Reconstrucción y despliegue de servicios Docker.
+
 ## [1.9.1] - 2026-02-26
 
 ### Corregido
