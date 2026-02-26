@@ -80,6 +80,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.10.0] - 2026-02-26
+
+### Agregado
+- **Backend (Email):** Integración con Brevo API para envío de correos transaccionales (`emailService.js`).
+- **Backend (PDF):** Generación dinámica de PDFs (`pdfService.js`) para:
+  - Certificados de donación (enviados al donante).
+  - Recibos fiscales (enviados al contacto de facturación).
+- **Backend (Flujo):** Actualización del endpoint `POST /api/donations/process` para enviar correos automáticamente tras una donación exitosa.
+- **Testing:** Script `test-email.js` para validar flujo completo de generación de PDFs y envío de correos.
+
+### Cambiado
+- **Configuración:** Actualización del remitente de correos a `dhguilleng@gmail.com`.
+- **Dependencias:** Añadidos `sib-api-v3-sdk` (Brevo) y `pdfkit` (PDFs) al `package.json` del backend.
+
 ## [1.9.2] - 2026-02-26
 
 ### Corregido
