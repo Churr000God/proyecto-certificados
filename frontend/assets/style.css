@@ -238,6 +238,7 @@ main.hero-page {
   overflow: hidden; /* Recorta todo lo que sobresalga (respetando el radio) */
   box-shadow: 0 16px 35px rgba(0,0,0,.12); /* Sombra suave para efecto de tarjeta flotante */
   background: black; /* Color de fondo base de la tarjeta */
+  min-height: 425px;
 }
 
 /* ===== Left panel ===== */ /* Columna izquierda con texto y badges */
