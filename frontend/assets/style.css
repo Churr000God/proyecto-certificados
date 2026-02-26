@@ -208,6 +208,7 @@ main.hero-page {
 .cause__header{ /* Contenedor del título y subrayado */
   text-align: center; /* Centra el texto horizontalmente */
   margin-bottom: 18px; /* Deja espacio debajo del encabezado */
+  margin-top: 28px; /* Deja espacio arriba del encabezado */
 }
 
 .cause__header h2{ /* Título principal de la sección */
