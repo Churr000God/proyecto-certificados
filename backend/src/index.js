@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const { TABLES, donorSchema, billingDetailsSchema, donationsSchema, certificatesSchema } = require('./db/schema');
+const emailService = require('./services/emailService');
+const pdfService = require('./services/pdfService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -311,6 +313,68 @@ app.post('/api/donations/process', async (req, res) => {
         }
 
         console.log('Transacción exitosa:', donationId);
+
+        // --- EMAIL NOTIFICATIONS (Async - do not block response) ---
+        (async () => {
+            try {
+                // 1. Send Certificate Email to Donor
+                if (donorData.email) {
+                    const certificateBuffer = await pdfService.generateCertificate({
+                        certificate: certificate || {},
+                        donor: donorData,
+                        donation: donationData
+                    });
+
+                    await emailService.sendEmail({
+                        toEmail: donorData.email,
+                        toName: donorData.full_name,
+                        subject: 'Tu Certificado de Donación - Proyecto Certificados',
+                        htmlContent: `
+                            <h1>¡Gracias por tu donación!</h1>
+                            <p>Estimado/a ${donorData.full_name},</p>
+                            <p>Agradecemos profundamente tu generosa contribución a la causa <strong>${donationData.cause_name || 'nuestra causa'}</strong>.</p>
+                            <p>Adjunto encontrarás tu certificado de donación.</p>
+                            <br>
+                            <p>Atentamente,</p>
+                            <p>El equipo de Proyecto Certificados</p>
+                        `,
+                        attachments: [{
+                            content: certificateBuffer.toString('base64'),
+                            name: `Certificado_${donationId}.pdf`
+                        }]
+                    });
+                }
+
+                // 2. Send Invoice Email to Fiscal Contact (if applicable)
+                if (billingDetails && billingDetails.fiscalEmail) {
+                    const invoiceBuffer = await pdfService.generateInvoice({
+                        billingDetails,
+                        donation: donationData,
+                        transactionId: donationId
+                    });
+
+                    await emailService.sendEmail({
+                        toEmail: billingDetails.fiscalEmail,
+                        toName: billingDetails.legalName || 'Departamento Fiscal',
+                        subject: 'Comprobante de Donación - Proyecto Certificados',
+                        htmlContent: `
+                            <h1>Comprobante de Transacción</h1>
+                            <p>Adjunto encontrará el recibo correspondiente a la donación con ID: ${donationId}.</p>
+                            <p>Monto: $${donationData.amount}</p>
+                            <br>
+                            <p>Atentamente,</p>
+                            <p>El equipo de Proyecto Certificados</p>
+                        `,
+                        attachments: [{
+                            content: invoiceBuffer.toString('base64'),
+                            name: `Recibo_${donationId}.pdf`
+                        }]
+                    });
+                }
+            } catch (emailError) {
+                console.error('Error sending notification emails:', emailError);
+            }
+        })();
 
         // 6. Responder Éxito
         res.json({
