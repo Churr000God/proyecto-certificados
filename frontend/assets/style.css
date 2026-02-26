@@ -517,6 +517,16 @@ main.hero-page {
   overflow: hidden; /* Recorta lo que se salga del círculo */
   transition: transform .18s ease, box-shadow .18s ease; /* Anima movimiento y sombra al hacer hover */
 }
+/* Esto solo afectará al logo que tenga data-cause="tec" */
+.cause__logo[data-cause="tec"] img {
+  transform: scale(2); /* Esto agranda la imagen un 20% más de lo normal */
+}
+.cause__logo[data-cause="tecsalud"] img {
+  transform: scale(1.5); /* Esto agranda la imagen un 20% más de lo normal */
+}
+.cause__logo[data-cause="tecmilenio"] img {
+  transform: scale(1.5); /* Esto agranda la imagen un 20% más de lo normal */
+}
 
 .cause__logo:hover{ /* Estado al pasar el mouse sobre el logo */
   transform: translateY(-2px) scale(1.02); /* Lo levanta ligeramente y lo agranda un poco */
