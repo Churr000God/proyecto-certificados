@@ -183,6 +183,10 @@
                     container.appendChild(statusMsg);
 
                     // Wrapper específico para el contenido del certificado (A4 Landscape)
+                    const exportMarginPx = Math.round((96 / 2.54) * 1); // 1 cm at 96dpi
+                    const exportRightPadPx = 0;
+                    const exportLeftPadPx = exportMarginPx + 115; // Push content further to the right
+
                     const certWrapper = document.createElement('div');
                     certWrapper.id = 'pdf-export-page';
                     certWrapper.style.width = '1123px'; // ~297mm
@@ -192,8 +196,8 @@
                     certWrapper.style.display = 'flex';
                     certWrapper.style.alignItems = 'center';
                     certWrapper.style.justifyContent = 'center';
-                    certWrapper.style.overflow = 'visible';
-                    certWrapper.style.padding = '10px';
+                    certWrapper.style.overflow = 'hidden';
+                    certWrapper.style.padding = `${exportMarginPx}px ${exportRightPadPx}px ${exportMarginPx}px ${exportLeftPadPx}px`;
                     certWrapper.style.boxSizing = 'border-box';
                     certWrapper.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)'; // Sombra para resaltar
                     // Escalamos visualmente si la pantalla es pequeña, pero el contenido real mantiene dimensiones
@@ -211,18 +215,27 @@
                         #pdf-export-page .certificate-preview {
                             border: 0 !important;
                             outline: 0 !important;
-                            margin: 0 !important;
+                            margin: 0 auto !important;
                             width: 100% !important;
                             height: 100% !important;
+                            max-width: 100% !important;
+                            max-height: 100% !important;
                             min-height: 0 !important;
                             padding: 0 !important;
+                            overflow: hidden !important;
                             box-sizing: border-box !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
                         }
                         #pdf-export-page .certificate-preview .cert__container {
-                            margin: 0 !important;
+                            width: 100% !important;
+                            height: 100% !important;
+                            max-width: 100% !important;
+                            max-height: 100% !important;
+                            min-height: 0 !important;
+                            margin: 0 auto !important;
+                            box-sizing: border-box !important;
                         }
                     `;
                     container.appendChild(exportOverrides);

@@ -129,6 +129,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(amount);
     }
 
+    function isUuid(value) {
+        return typeof value === 'string'
+            && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.trim());
+    }
+
+    function normalizeToken(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+    function resolveCauseUuid(rawCauseId, rawCauseName) {
+        if (isUuid(rawCauseId)) return rawCauseId.trim();
+
+        try {
+            const selected = JSON.parse(localStorage.getItem('selected_cause') || 'null');
+            if (selected && isUuid(selected.cause_id)) {
+                return selected.cause_id.trim();
+            }
+        } catch (_e) {}
+
+        try {
+            const menu = JSON.parse(localStorage.getItem('menu_config') || 'null');
+            const rows = Array.isArray(menu?.menu_config) ? menu.menu_config : [];
+            if (!rows.length) return null;
+
+            const targetIdToken = normalizeToken(rawCauseId);
+            const targetNameToken = normalizeToken(rawCauseName);
+
+            const match = rows.find((row) => {
+                if (!isUuid(row?.cause_id)) return false;
+                const rowName = normalizeToken(row?.cause_name);
+                return (
+                    (targetNameToken && rowName === targetNameToken) ||
+                    (targetIdToken && rowName === targetIdToken)
+                );
+            });
+
+            return match ? match.cause_id.trim() : null;
+        } catch (_e) {
+            return null;
+        }
+    }
+
+    function normalizeDonationCause(donation) {
+        if (!donation) return donation;
+
+        const normalized = { ...donation };
+        const rawCauseId = normalized.causeId || normalized.cause_id || '';
+        const rawCauseName = normalized.causeName || normalized.cause_name || '';
+        const resolvedCauseId = resolveCauseUuid(rawCauseId, rawCauseName);
+
+        if (resolvedCauseId) {
+            normalized.causeId = resolvedCauseId;
+            normalized.cause_id = resolvedCauseId;
+        }
+
+        return normalized;
+    }
+
     function setupPaymentSelection() {
         paymentCards.forEach(card => {
             card.addEventListener('click', () => {
@@ -183,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 billingDetails: billingData,
                 totalAmount: donationData.totalAmount,
                 donations: donationData.records.map(record => {
-                    const d = { ...record.donation };
+                    const d = normalizeDonationCause({ ...record.donation });
                     // Normalizar claves si es necesario (aunque en bulk ya vienen bien estructuradas)
                     return {
                         donation: d,
@@ -191,6 +253,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                 })
             };
+
+            const invalidIndex = payload.donations.findIndex(item => !isUuid(item?.donation?.causeId || item?.donation?.cause_id));
+            if (invalidIndex !== -1) {
+                alert('Error: Una o más donaciones no tienen una causa válida (UUID). Selecciona la causa nuevamente.');
+                console.error('Invalid causeId in bulk payload item:', payload.donations[invalidIndex]);
+                return;
+            }
         } else {
             // LÓGICA PARA DONACIÓN INDIVIDUAL / CORPORATIVA SIMPLE
             let finalDonationData = { ...donationData }; // Copia base
@@ -217,6 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+
+            finalDonationData.donation = normalizeDonationCause(finalDonationData.donation);
             
             payload = {
                 donor: donorData,
@@ -236,11 +307,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Validar que causeId esté presente
-            if (!payload.donation.causeId) {
+            if (!isUuid(payload.donation.causeId)) {
                 alert('Error: No se ha seleccionado una causa válida. Por favor vuelve al inicio.');
                 console.error('Missing causeId in payload:', payload);
-                btnFinishPay.disabled = false;
-                btnFinishPay.innerHTML = originalBtnContent;
                 return;
             }
         }
@@ -352,6 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     container.style.alignItems = 'center';
                     container.style.justifyContent = 'center';
 
+                    const exportMarginPx = Math.round((96 / 2.54) * 1); // 1 cm at 96dpi
+                    const exportRightPadPx = 0;
+                    const exportLeftPadPx = exportMarginPx + 115; // Push content further to the right
+
                     const certWrapper = document.createElement('div');
                     certWrapper.id = 'pdf-export-page';
                     certWrapper.style.width = '1123px';
@@ -361,8 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     certWrapper.style.display = 'flex';
                     certWrapper.style.alignItems = 'center';
                     certWrapper.style.justifyContent = 'center';
-                    certWrapper.style.overflow = 'visible';
-                    certWrapper.style.padding = '10px';
+                    certWrapper.style.overflow = 'hidden';
+                    certWrapper.style.padding = `${exportMarginPx}px ${exportRightPadPx}px ${exportMarginPx}px ${exportLeftPadPx}px`;
                     certWrapper.style.boxSizing = 'border-box';
 
                     const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
@@ -375,18 +448,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         #pdf-export-page .certificate-preview {
                             border: 0 !important;
                             outline: 0 !important;
-                            margin: 0 !important;
+                            margin: 0 auto !important;
                             width: 100% !important;
                             height: 100% !important;
+                            max-width: 100% !important;
+                            max-height: 100% !important;
                             min-height: 0 !important;
                             padding: 0 !important;
+                            overflow: hidden !important;
                             box-sizing: border-box !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
                         }
                         #pdf-export-page .certificate-preview .cert__container {
-                            margin: 0 !important;
+                            width: 100% !important;
+                            height: 100% !important;
+                            max-width: 100% !important;
+                            max-height: 100% !important;
+                            min-height: 0 !important;
+                            margin: 0 auto !important;
+                            box-sizing: border-box !important;
                         }
                     `;
                     container.appendChild(exportOverrides);

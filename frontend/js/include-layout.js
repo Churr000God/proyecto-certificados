@@ -24,6 +24,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Inicializar lógica del Navbar (Hamburger menu)
   initNavbar();
+  syncNavbarHeight();
+  window.addEventListener("resize", syncNavbarHeight);
 });
 
 function initNavbar() {
@@ -45,4 +47,11 @@ function initNavbar() {
       });
     });
   }
+}
+
+function syncNavbarHeight() {
+  const navbar = document.querySelector(".navbar");
+  if (!navbar) return;
+  const navHeight = Math.ceil(navbar.getBoundingClientRect().height || 76);
+  document.documentElement.style.setProperty("--navbar-height", `${navHeight}px`);
 }
