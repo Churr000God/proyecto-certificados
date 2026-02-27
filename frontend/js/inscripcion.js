@@ -295,6 +295,150 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('Enviando transacción con datos de LocalStorage:', finalPayload);
 
+                // 4.5 Generar PDF desde LocalStorage (single source of truth para correo y descarga)
+                localStorage.removeItem('certificate_pdf_base64');
+                let pdfBase64 = null;
+                const storedHtml = localStorage.getItem('certificate_html');
+
+                if (!storedHtml) {
+                    throw new Error('No existe certificate_html en LocalStorage. Regresa a personalizar el certificado antes de pagar.');
+                }
+                if (!window.html2pdf) {
+                    throw new Error('html2pdf no está disponible en esta vista.');
+                }
+
+                let container = null;
+                try {
+                    console.log('Generando PDF desde el cliente...');
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(storedHtml, 'text/html');
+
+                    const waitForImages = async (root) => {
+                        const images = Array.from(root.querySelectorAll('img'));
+                        if (!images.length) return;
+                        await Promise.all(images.map((img) => {
+                            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                            return new Promise((resolve) => {
+                                const done = () => resolve();
+                                img.addEventListener('load', done, { once: true });
+                                img.addEventListener('error', done, { once: true });
+                            });
+                        }));
+                    };
+
+                    const waitForStyles = async (root) => {
+                        const links = Array.from(root.querySelectorAll('link[rel="stylesheet"]'));
+                        if (!links.length) return;
+                        await Promise.all(links.map((link) => {
+                            if (link.sheet) return Promise.resolve();
+                            return new Promise((resolve) => {
+                                const done = () => resolve();
+                                link.addEventListener('load', done, { once: true });
+                                link.addEventListener('error', done, { once: true });
+                            });
+                        }));
+                    };
+
+                    container = document.createElement('div');
+                    container.style.position = 'fixed';
+                    container.style.left = '-10000px';
+                    container.style.top = '0';
+                    container.style.width = '100vw';
+                    container.style.height = '100vh';
+                    container.style.backgroundColor = '#f0f2f5';
+                    container.style.overflow = 'auto';
+                    container.style.zIndex = '99999';
+
+                    const certWrapper = document.createElement('div');
+                    certWrapper.style.width = '1123px';
+                    certWrapper.style.minHeight = '794px';
+                    certWrapper.style.backgroundColor = '#ffffff';
+                    certWrapper.style.position = 'relative';
+
+                    const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+                    styles.forEach((styleNode) => {
+                        container.appendChild(styleNode.cloneNode(true));
+                    });
+
+                    const exportOverrides = document.createElement('style');
+                    exportOverrides.textContent = `
+                        .certificate-preview {
+                            border: 0 !important;
+                            outline: 0 !important;
+                            margin: 0 !important;
+                        }
+                    `;
+                    container.appendChild(exportOverrides);
+
+                    const certNode =
+                        doc.querySelector('.certificate-preview') ||
+                        doc.querySelector('.cert__container') ||
+                        doc.body.firstElementChild;
+                    if (!certNode) {
+                        throw new Error('No se encontró el contenido del certificado para generar el PDF.');
+                    }
+
+                    certWrapper.appendChild(certNode.cloneNode(true));
+                    container.appendChild(certWrapper);
+                    document.body.appendChild(container);
+
+                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                    if (document.fonts && document.fonts.ready) {
+                        await document.fonts.ready;
+                    }
+                    await waitForStyles(container);
+                    await waitForImages(certWrapper);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    const exportWidth = Math.ceil(certWrapper.scrollWidth);
+                    const exportHeight = Math.ceil(certWrapper.scrollHeight);
+                    const exportOrientation = exportWidth >= exportHeight ? 'landscape' : 'portrait';
+
+                    const opt = {
+                        margin: 0,
+                        filename: 'certificate.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            letterRendering: true,
+                            scrollX: 0,
+                            scrollY: 0,
+                            width: exportWidth,
+                            height: exportHeight,
+                            windowWidth: exportWidth,
+                            windowHeight: exportHeight
+                        },
+                        jsPDF: { unit: 'px', format: [exportWidth, exportHeight], orientation: exportOrientation }
+                    };
+
+                    const pdfDataUri = await html2pdf().set(opt).from(certWrapper).outputPdf('datauristring');
+                    pdfBase64 = pdfDataUri && pdfDataUri.includes(',')
+                        ? pdfDataUri.split(',')[1]
+                        : null;
+
+                    if (!pdfBase64) {
+                        throw new Error('html2pdf no devolvió un data URI válido.');
+                    }
+
+                    console.log(`PDF cliente generado (base64 length: ${pdfBase64.length}).`);
+                } catch (pdfError) {
+                    console.error('Error generando PDF en cliente:', pdfError);
+                } finally {
+                    if (container && container.parentNode) {
+                        container.parentNode.removeChild(container);
+                    }
+                }
+
+                if (pdfBase64) {
+                    finalPayload.certificatePdfBase64 = pdfBase64;
+                    localStorage.setItem('certificate_pdf_base64', pdfBase64);
+                    localStorage.removeItem('certificate_pdf');
+                } else if (donationData.type !== 'corporate_bulk') {
+                    throw new Error('No se pudo generar el PDF del certificado en el cliente. Intenta nuevamente sin recargar la pagina.');
+                }
+
                 // 5. Enviar al Backend
                 const endpoint = donationData.type === 'corporate_bulk'
                     ? 'http://localhost:3000/api/donations/process-bulk'

@@ -29,7 +29,7 @@ const emailService = {
 
         sendSmtpEmail.subject = subject;
         sendSmtpEmail.htmlContent = htmlContent;
-        sendSmtpEmail.sender = { "name": "Proyecto Certificados", "email": "dhguilleng@gmail.com" };
+        sendSmtpEmail.sender = { "name": process.env.SENDER_NAME || "Proyecto Certificados", "email": process.env.SENDER_EMAIL || "dhguilleng@gmail.com" };
         sendSmtpEmail.to = [{ "email": toEmail, "name": toName }];
         
         if (attachments && attachments.length > 0) {

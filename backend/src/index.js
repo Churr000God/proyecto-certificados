@@ -124,7 +124,8 @@ app.post('/api/donations/check-limit', async (req, res) => {
 // Process Donation Route
 app.post('/api/donations/process', async (req, res) => {
     try {
-        const { donor, billingDetails, donation, certificate, beneficiaryData } = req.body;
+        const { donor, billingDetails, donation, certificate, beneficiaryData, certificatePdfBase64 } = req.body;
+        console.log('Incoming certificatePdfBase64:', certificatePdfBase64 ? `present (${String(certificatePdfBase64).length} chars)` : 'missing');
 
         // 1. Validar datos mínimos
         if (!donor || !donation || !donation.amount) {
@@ -319,28 +320,52 @@ app.post('/api/donations/process', async (req, res) => {
             try {
                 // 1. Send Certificate Email to Donor
                 if (donorData.email) {
-                    const certificateBuffer = await pdfService.generateCertificate({
-                        certificate: certificate || {},
-                        donor: donorData,
-                        donation: donationData
-                    });
+                    let certificateBuffer;
+
+                    // Use client-generated PDF if available (exact match), otherwise fallback to backend generation
+                    if (certificatePdfBase64) {
+                        try {
+                            const cleanedBase64 = String(certificatePdfBase64).replace(/^data:application\/pdf;base64,/, '');
+                            const decodedBuffer = Buffer.from(cleanedBase64, 'base64');
+                            const pdfSignature = decodedBuffer.subarray(0, 4).toString('ascii');
+                            if (pdfSignature !== '%PDF') {
+                                throw new Error('Client PDF is not a valid PDF binary (missing %PDF signature).');
+                            }
+                            certificateBuffer = decodedBuffer;
+                            console.log(`Using client-generated PDF for email attachment (${certificateBuffer.length} bytes).`);
+                        } catch (e) {
+                            console.error('Error decoding client PDF, falling back to server generation:', e);
+                        }
+                    }
+                    
+                    if (!certificateBuffer) {
+                        certificateBuffer = await pdfService.generateCertificate({
+                            certificate: certificate || {},
+                            donor: donorData,
+                            donation: donationData
+                        });
+                        console.log('Generated server-side PDF for email attachment.');
+                    }
 
                     await emailService.sendEmail({
                         toEmail: donorData.email,
                         toName: donorData.full_name,
-                        subject: 'Tu Certificado de Donación - Proyecto Certificados',
+                        subject: 'Tu Certificado de Generosidad - Becas con Propósito',
                         htmlContent: `
-                            <h1>¡Gracias por tu donación!</h1>
-                            <p>Estimado/a ${donorData.full_name},</p>
-                            <p>Agradecemos profundamente tu generosa contribución a la causa <strong>${donationData.cause_name || 'nuestra causa'}</strong>.</p>
-                            <p>Adjunto encontrarás tu certificado de donación.</p>
-                            <br>
-                            <p>Atentamente,</p>
-                            <p>El equipo de Proyecto Certificados</p>
+                            <div style="font-family: Arial, sans-serif; color: #333;">
+                                <h1 style="color: #003366;">¡Gracias por tu generosidad!</h1>
+                                <p>Estimado/a <strong>${donorData.full_name}</strong>,</p>
+                                <p>Agradecemos profundamente tu contribución a la causa <strong>${donationData.cause_name || 'Becas con Propósito'}</strong>.</p>
+                                <p>Adjunto encontrarás tu certificado de donación con el diseño personalizado que seleccionaste.</p>
+                                <br>
+                                <p>Atentamente,</p>
+                                <p>El equipo de Becas con Propósito</p>
+                            </div>
                         `,
                         attachments: [{
                             content: certificateBuffer.toString('base64'),
-                            name: `Certificado_${donationId}.pdf`
+                            name: `Certificado_${donationId}.pdf`,
+                            contentType: 'application/pdf'
                         }]
                     });
                 }

@@ -80,6 +80,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.12.0] - 2026-02-27
+
+### Agregado
+- **Frontend (Generación de Certificado):** 
+  - Implementación de `html2pdf.js` en `frontend/views/inscripcion.html` para generar el PDF del certificado directamente en el navegador.
+  - Lógica en `frontend/js/inscripcion.js` para convertir el HTML del certificado (almacenado en `localStorage`) a PDF (Base64) antes de enviar la transacción.
+  - Inclusión de `style_donacioni.css` en la vista de inscripción para asegurar que el generador de PDF tenga acceso a los estilos correctos.
+- **Backend (Procesamiento de Donación):**
+  - Actualización del endpoint `/api/donations/process` en `backend/src/index.js` para recibir `certificatePdfBase64`.
+  - Lógica para usar el PDF generado por el cliente como adjunto en el correo electrónico, garantizando fidelidad visual con la vista previa web.
+- **Backend (Servicios):**
+  - Actualización de `emailService.js` para soportar la configuración de remitente mediante variables de entorno (`SENDER_NAME`, `SENDER_EMAIL`).
+  - Mejora en `pdfService.js` para alinear los temas de respaldo (fallback) con los estilos del frontend (bordes zigzag, colores por causa).
+
+### Cambiado
+- **Infraestructura:**
+  - Actualización de `docker-compose.yml` para mapear el volumen de assets (`./frontend/assets:/app/assets`) permitiendo al backend acceder a imágenes locales si es necesario.
+- **Correcciones:**
+  - Solución al problema de discrepancia visual entre el certificado visto en la web y el enviado por correo.
+  - Ajuste en la carga de variables de entorno para el servicio de correo.
+
 ## [1.11.0] - 2026-02-27
 
 ### Agregado
