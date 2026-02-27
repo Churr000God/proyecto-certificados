@@ -184,10 +184,17 @@
 
                     // Wrapper específico para el contenido del certificado (A4 Landscape)
                     const certWrapper = document.createElement('div');
+                    certWrapper.id = 'pdf-export-page';
                     certWrapper.style.width = '1123px'; // ~297mm
-                    certWrapper.style.minHeight = '794px'; // ~210mm
+                    certWrapper.style.height = '794px'; // ~210mm
                     certWrapper.style.backgroundColor = '#ffffff';
                     certWrapper.style.position = 'relative';
+                    certWrapper.style.display = 'flex';
+                    certWrapper.style.alignItems = 'center';
+                    certWrapper.style.justifyContent = 'center';
+                    certWrapper.style.overflow = 'visible';
+                    certWrapper.style.padding = '10px';
+                    certWrapper.style.boxSizing = 'border-box';
                     certWrapper.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)'; // Sombra para resaltar
                     // Escalamos visualmente si la pantalla es pequeña, pero el contenido real mantiene dimensiones
                     // Parsear el HTML guardado
@@ -201,23 +208,43 @@
                     });
                     const exportOverrides = document.createElement('style');
                     exportOverrides.textContent = `
-                        .certificate-preview {
+                        #pdf-export-page .certificate-preview {
                             border: 0 !important;
                             outline: 0 !important;
+                            margin: 0 !important;
+                            width: 100% !important;
+                            height: 100% !important;
+                            min-height: 0 !important;
+                            padding: 0 !important;
+                            box-sizing: border-box !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                        }
+                        #pdf-export-page .certificate-preview .cert__container {
                             margin: 0 !important;
                         }
                     `;
                     container.appendChild(exportOverrides);
                     
                     // Usar primero el wrapper del preview para conservar tema/escala visual
-                    const certNode =
-                        doc.querySelector('.certificate-preview') ||
-                        doc.querySelector('.cert__container') ||
-                        doc.body.firstElementChild;
-                    if (!certNode) {
+                    const previewNode = doc.querySelector('.certificate-preview');
+                    const certNode = doc.querySelector('.cert__container');
+                    let exportNode = null;
+                    if (previewNode) {
+                        exportNode = previewNode.cloneNode(true);
+                    } else if (certNode) {
+                        const fallbackWrapper = document.createElement('div');
+                        fallbackWrapper.className = 'certificate-preview';
+                        fallbackWrapper.appendChild(certNode.cloneNode(true));
+                        exportNode = fallbackWrapper;
+                    } else if (doc.body.firstElementChild) {
+                        exportNode = doc.body.firstElementChild.cloneNode(true);
+                    }
+                    if (!exportNode) {
                         throw new Error('No se encontro el contenido del certificado para generar el PDF.');
                     }
-                    certWrapper.appendChild(certNode.cloneNode(true));
+                    certWrapper.appendChild(exportNode);
 
                     // Fallback: si por alguna razon persiste placeholder, usar dato de sesion
                     const recipientNode = certWrapper.querySelector('#cert-recipient, .cert__recipient');
@@ -244,8 +271,8 @@
                     await new Promise(resolve => setTimeout(resolve, 200));
 
                     statusMsg.innerHTML = '<i class="fas fa-file-pdf"></i> Generando archivo PDF...';
-                    const exportWidth = Math.ceil(certWrapper.scrollWidth);
-                    const exportHeight = Math.ceil(certWrapper.scrollHeight);
+                    const exportWidth = 1123;
+                    const exportHeight = 794;
                     const exportOrientation = exportWidth >= exportHeight ? 'landscape' : 'portrait';
 
                     const opt = {
@@ -264,7 +291,12 @@
                             windowWidth: exportWidth,
                             windowHeight: exportHeight
                         },
-                        jsPDF:        { unit: 'px', format: [exportWidth, exportHeight], orientation: exportOrientation }
+                        jsPDF:        {
+                            unit: 'px',
+                            format: [exportWidth, exportHeight],
+                            orientation: exportOrientation,
+                            hotfixes: ['px_scaling']
+                        }
                     };
 
                     // Generar PDF solo del wrapper del certificado

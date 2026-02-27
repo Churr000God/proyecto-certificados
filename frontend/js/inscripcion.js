@@ -348,12 +348,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     container.style.backgroundColor = '#f0f2f5';
                     container.style.overflow = 'auto';
                     container.style.zIndex = '99999';
+                    container.style.display = 'flex';
+                    container.style.alignItems = 'center';
+                    container.style.justifyContent = 'center';
 
                     const certWrapper = document.createElement('div');
+                    certWrapper.id = 'pdf-export-page';
                     certWrapper.style.width = '1123px';
-                    certWrapper.style.minHeight = '794px';
+                    certWrapper.style.height = '794px';
                     certWrapper.style.backgroundColor = '#ffffff';
                     certWrapper.style.position = 'relative';
+                    certWrapper.style.display = 'flex';
+                    certWrapper.style.alignItems = 'center';
+                    certWrapper.style.justifyContent = 'center';
+                    certWrapper.style.overflow = 'visible';
+                    certWrapper.style.padding = '10px';
+                    certWrapper.style.boxSizing = 'border-box';
 
                     const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
                     styles.forEach((styleNode) => {
@@ -362,23 +372,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const exportOverrides = document.createElement('style');
                     exportOverrides.textContent = `
-                        .certificate-preview {
+                        #pdf-export-page .certificate-preview {
                             border: 0 !important;
                             outline: 0 !important;
+                            margin: 0 !important;
+                            width: 100% !important;
+                            height: 100% !important;
+                            min-height: 0 !important;
+                            padding: 0 !important;
+                            box-sizing: border-box !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                        }
+                        #pdf-export-page .certificate-preview .cert__container {
                             margin: 0 !important;
                         }
                     `;
                     container.appendChild(exportOverrides);
 
-                    const certNode =
-                        doc.querySelector('.certificate-preview') ||
-                        doc.querySelector('.cert__container') ||
-                        doc.body.firstElementChild;
-                    if (!certNode) {
-                        throw new Error('No se encontró el contenido del certificado para generar el PDF.');
+                    const previewNode = doc.querySelector('.certificate-preview');
+                    const certNode = doc.querySelector('.cert__container');
+                    let exportNode = null;
+                    if (previewNode) {
+                        exportNode = previewNode.cloneNode(true);
+                    } else if (certNode) {
+                        const fallbackWrapper = document.createElement('div');
+                        fallbackWrapper.className = 'certificate-preview';
+                        fallbackWrapper.appendChild(certNode.cloneNode(true));
+                        exportNode = fallbackWrapper;
+                    } else if (doc.body.firstElementChild) {
+                        exportNode = doc.body.firstElementChild.cloneNode(true);
+                    }
+                    if (!exportNode) {
+                        throw new Error('No se encontro el contenido del certificado para generar el PDF.');
                     }
 
-                    certWrapper.appendChild(certNode.cloneNode(true));
+                    certWrapper.appendChild(exportNode);
                     container.appendChild(certWrapper);
                     document.body.appendChild(container);
 
@@ -390,8 +420,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     await waitForImages(certWrapper);
                     await new Promise(resolve => setTimeout(resolve, 200));
 
-                    const exportWidth = Math.ceil(certWrapper.scrollWidth);
-                    const exportHeight = Math.ceil(certWrapper.scrollHeight);
+                    const exportWidth = 1123;
+                    const exportHeight = 794;
                     const exportOrientation = exportWidth >= exportHeight ? 'landscape' : 'portrait';
 
                     const opt = {
@@ -410,7 +440,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             windowWidth: exportWidth,
                             windowHeight: exportHeight
                         },
-                        jsPDF: { unit: 'px', format: [exportWidth, exportHeight], orientation: exportOrientation }
+                        jsPDF: {
+                            unit: 'px',
+                            format: [exportWidth, exportHeight],
+                            orientation: exportOrientation,
+                            hotfixes: ['px_scaling']
+                        }
                     };
 
                     const pdfDataUri = await html2pdf().set(opt).from(certWrapper).outputPdf('datauristring');

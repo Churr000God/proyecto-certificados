@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Certificado PDF</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1f2937;
+        }
+        .wrap {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+        .bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        button {
+            border: 0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #0f766e;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .status {
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .preview-host {
+            min-height: 70vh;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div class="wrap">
+        <div class="bar">
+            <button id="btn-load">Cargar certificado</button>
+            <button id="btn-pdf">Generar PDF</button>
+            <span id="status" class="status">Listo.</span>
+        </div>
+        <div id="preview-host" class="preview-host"></div>
+    </div>
+
+    <script>
+        const CERT_W = 1123;
+        const CERT_H = 794;
+        // Ajustes finos de posicion para exportacion PDF
+        // Cambia estos valores para mover el certificado en el PDF
+        const EXPORT_PAGE_PADDING = 0; // px
+        const EXPORT_SHIFT_X = 0; // px (negativo mueve a la izquierda)
+        const EXPORT_SHIFT_Y = 0; // px (negativo mueve hacia arriba)
+
+        const statusEl = document.getElementById('status');
+        const previewHost = document.getElementById('preview-host');
+        const btnLoad = document.getElementById('btn-load');
+        const btnPdf = document.getElementById('btn-pdf');
+
+        function setStatus(msg) {
+            statusEl.textContent = msg;
+        }
+
+        function inferThemeClass(causeName) {
+            const c = String(causeName || '').toLowerCase();
+            if (c.includes('beca')) return 'cert-theme-becas';
+            if (c.includes('salud') || c.includes('medic')) return 'cert-theme-salud';
+            if (c.includes('infra') || c.includes('instal')) return 'cert-theme-infraestructura';
+            if (c.includes('equipo') || c.includes('deporte')) return 'cert-theme-equipo';
+            return 'cert-theme-program';
+        }
+
+        function ensureCertificateHtmlFromSession() {
+            const existing = localStorage.getItem('certificate_html');
+            if (existing) return existing;
+
+            const sessionRaw = localStorage.getItem('session_donation_data');
+            if (!sessionRaw) return null;
+
+            let session = null;
+            try {
+                session = JSON.parse(sessionRaw);
+            } catch (_e) {
+                return null;
+            }
+
+            const honoree = session?.certificate?.honoreeName || 'A quien corresponda';
+            const causeName = session?.donation?.causeName || session?.donation?.cause_name || 'General';
+            const message = session?.certificate?.message || '';
+            const themeClass = inferThemeClass(causeName);
+
+            const generatedHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado de Generosidad</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <link rel="stylesheet" href="../assets/style_donacioni.css">
+    <style>
+        body { margin: 0; padding: 16px; background: #f0f2f5; }
+        .certificate-preview { width: 1123px !important; min-height: 794px !important; max-width: none !important; }
+    </style>
+</head>
+<body>
+    <div class="certificate-preview ${themeClass}">
+        <div class="cert__container">
+            <div class="cert__logo-area"><img class="cert__logo" src="../assets/img/logo.png" alt="Logo"></div>
+            <h2 class="cert__title">CERTIFICADO DE<br>GENEROSIDAD</h2>
+            <p class="cert__subtitle">Este certificado reconoce que</p>
+            <h3 class="cert__recipient">${honoree}</h3>
+            <p class="cert__text">Ha realizado una valiosa donacion para apoyar las <strong>${causeName}</strong></p>
+            ${message ? `<p class="cert__message">"${message}"</p>` : ''}
+        </div>
+    </div>
+</body>
+</html>`;
+
+            localStorage.setItem('certificate_html', generatedHtml);
+            return generatedHtml;
+        }
+
+        function parseCertificateHtml() {
+            const storedHtml = ensureCertificateHtmlFromSession();
+            if (!storedHtml) {
+                throw new Error('No existe certificate_html ni session_donation_data en LocalStorage. Primero genera un certificado desde donacion_individual.');
+            }
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(storedHtml, 'text/html');
+            const previewNode = doc.querySelector('.certificate-preview');
+            const certNode = doc.querySelector('.cert__container');
+            let exportNode = null;
+
+            if (previewNode) {
+                exportNode = previewNode.cloneNode(true);
+            } else if (certNode) {
+                const fallbackWrapper = document.createElement('div');
+                fallbackWrapper.className = 'certificate-preview';
+                fallbackWrapper.appendChild(certNode.cloneNode(true));
+                exportNode = fallbackWrapper;
+            } else if (doc.body.firstElementChild) {
+                exportNode = doc.body.firstElementChild.cloneNode(true);
+            }
+
+            if (!exportNode) {
+                throw new Error('No se encontro contenido de certificado en certificate_html.');
+            }
+
+            return { doc, exportNode };
+        }
+
+        function renderPreview() {
+            const { doc, exportNode } = parseCertificateHtml();
+            previewHost.innerHTML = '';
+
+            const styleHost = document.createElement('div');
+            const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+            styles.forEach((styleNode) => styleHost.appendChild(styleNode.cloneNode(true)));
+            previewHost.appendChild(styleHost);
+
+            const wrapper = document.createElement('div');
+            wrapper.style.width = CERT_W + 'px';
+            wrapper.style.height = CERT_H + 'px';
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'center';
+            wrapper.style.background = '#fff';
+            wrapper.style.boxSizing = 'border-box';
+            wrapper.appendChild(exportNode);
+            previewHost.appendChild(wrapper);
+
+            setStatus('Preview cargado desde certificate_html.');
+        }
+
+        async function generatePdfBase64() {
+            const { doc, exportNode } = parseCertificateHtml();
+            let container = null;
+
+            const waitForImages = async (root) => {
+                const images = Array.from(root.querySelectorAll('img'));
+                if (!images.length) return;
+                await Promise.all(images.map((img) => {
+                    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        const done = () => resolve();
+                        img.addEventListener('load', done, { once: true });
+                        img.addEventListener('error', done, { once: true });
+                    });
+                }));
+            };
+
+            const waitForStyles = async (root) => {
+                const links = Array.from(root.querySelectorAll('link[rel="stylesheet"]'));
+                if (!links.length) return;
+                await Promise.all(links.map((link) => {
+                    if (link.sheet) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        const done = () => resolve();
+                        link.addEventListener('load', done, { once: true });
+                        link.addEventListener('error', done, { once: true });
+                    });
+                }));
+            };
+
+            try {
+                container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.left = '-10000px';
+                container.style.top = '0';
+                container.style.width = '100vw';
+                container.style.height = '100vh';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.style.background = '#f0f2f5';
+
+                const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
+                styles.forEach((styleNode) => container.appendChild(styleNode.cloneNode(true)));
+
+                const exportOverrides = document.createElement('style');
+                exportOverrides.textContent = `
+                    #pdf-export-page .certificate-preview {
+                        border: 0 !important;
+                        outline: 0 !important;
+                        margin: 0 !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        min-height: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                    }
+                    #pdf-export-page .certificate-preview .cert__container {
+                        margin: 0 !important;
+                    }
+                `;
+                container.appendChild(exportOverrides);
+
+                const exportPage = document.createElement('div');
+                exportPage.id = 'pdf-export-page';
+                exportPage.style.width = CERT_W + 'px';
+                exportPage.style.height = CERT_H + 'px';
+                exportPage.style.display = 'flex';
+                exportPage.style.alignItems = 'center';
+                exportPage.style.justifyContent = 'center';
+                exportPage.style.padding = EXPORT_PAGE_PADDING + 'px';
+                exportPage.style.boxSizing = 'border-box';
+                exportPage.style.background = '#fff';
+                exportPage.style.overflow = 'visible';
+
+                const exportContent = document.createElement('div');
+                exportContent.style.transform = `translate(${EXPORT_SHIFT_X}px, ${EXPORT_SHIFT_Y}px)`;
+                exportContent.style.transformOrigin = 'center center';
+                exportContent.appendChild(exportNode);
+
+                exportPage.appendChild(exportContent);
+                container.appendChild(exportPage);
+
+                document.body.appendChild(container);
+
+                await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                await waitForStyles(container);
+                await waitForImages(container);
+                await new Promise((resolve) => setTimeout(resolve, 200));
+
+                const opt = {
+                    margin: 0,
+                    filename: 'Prueba_Certificado.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        letterRendering: true,
+                        scrollX: 0,
+                        scrollY: 0,
+                        width: CERT_W,
+                        height: CERT_H,
+                        windowWidth: CERT_W,
+                        windowHeight: CERT_H
+                    },
+                    jsPDF: {
+                        unit: 'px',
+                        format: [CERT_W, CERT_H],
+                        orientation: 'landscape',
+                        hotfixes: ['px_scaling']
+                    }
+                };
+
+                const pdfDataUri = await html2pdf().set(opt).from(exportPage).outputPdf('datauristring');
+                if (!pdfDataUri || !pdfDataUri.includes(',')) {
+                    throw new Error('No se pudo generar data URI del PDF.');
+                }
+
+                return pdfDataUri.split(',')[1];
+            } finally {
+                if (container && container.parentNode) container.parentNode.removeChild(container);
+            }
+        }
+
+        btnLoad.addEventListener('click', () => {
+            try {
+                renderPreview();
+            } catch (error) {
+                setStatus('Error: ' + error.message);
+            }
+        });
+
+        btnPdf.addEventListener('click', async () => {
+            try {
+                setStatus('Generando PDF...');
+                const pdfBase64 = await generatePdfBase64();
+                localStorage.setItem('certificate_pdf_base64', pdfBase64);
+                const link = document.createElement('a');
+                link.href = 'data:application/pdf;base64,' + pdfBase64;
+                link.download = 'Prueba_Certificado.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setStatus('PDF generado y guardado en certificate_pdf_base64.');
+            } catch (error) {
+                setStatus('Error: ' + error.message);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

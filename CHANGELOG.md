@@ -80,6 +80,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.12.1] - 2026-02-27
+
+### Cambiado
+- **Frontend (Descarga):** 
+  - Actualización de `frontend/views/descarga_certificado.html` para priorizar la descarga del PDF generado en cliente (`certificate_pdf_base64`), asegurando que el archivo descargado sea idéntico al enviado por correo.
+  - Inclusión de librerías `jspdf` y `html2pdf` en la vista de descarga para soporte futuro de regeneración si fuera necesario.
+- **Frontend (Inscripción):** 
+  - Refinamiento de la configuración de `html2pdf` en `frontend/js/inscripcion.js` (uso de unidades 'px' y hotfixes de escalado) para mejorar la fidelidad visual del PDF generado.
+
 ## [1.12.0] - 2026-02-27
 
 ### Agregado
