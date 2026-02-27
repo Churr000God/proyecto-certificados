@@ -21,4 +21,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Ejemplo: actualizar año en footer si existe
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
+
+  // Inicializar lógica del Navbar (Hamburger menu)
+  initNavbar();
 });
+
+function initNavbar() {
+  const hamburger = document.querySelector(".hamburger");
+  const navLinks = document.querySelector(".nav-links");
+  const navItems = document.querySelectorAll(".nav-links li a");
+
+  if (hamburger && navLinks) {
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      navLinks.classList.toggle("active");
+    });
+
+    // Cerrar menú al hacer click en un enlace
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        hamburger.classList.remove("active");
+        navLinks.classList.remove("active");
+      });
+    });
+  }
+}

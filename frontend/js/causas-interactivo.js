@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "5ea2245d-4910-4c07-90b1-b668bfe02305",
         cause_name: "Becas",
         cause_description: "Apoya becas para estudiantes de Tecmilenio.",
+        icon: "../assets/img/Becas.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -35,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "5ea2245d-4910-4c07-90b1-b668bfe02305",
         cause_name: "Apoyo a equipos representativos",
         cause_description: "Impulsa equipos deportivos y culturales representativos.",
+        icon: "../assets/img/EquipoRepresentativos.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -48,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "5ea2245d-4910-4c07-90b1-b668bfe02305",
         cause_name: "Mejora de instalaciones",
         cause_description: "Mejora espacios e infraestructura del campus.",
+        icon: "../assets/img/MejoraInstalaciones.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -61,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "5ea2245d-4910-4c07-90b1-b668bfe02305",
         cause_name: "Programas sociales",
         cause_description: "Programas sociales y de impacto en la comunidad.",
+        icon: "../assets/img/ProgramasSociales.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -75,6 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "93b67f3e-5f32-4f94-9df7-d93542980a58",
         cause_name: "Becas",
         cause_description: "Apoya becas para estudiantes del Tec de Monterrey.",
+        icon: "../assets/img/Becas.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -88,6 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "93b67f3e-5f32-4f94-9df7-d93542980a58",
         cause_name: "Apoyo a equipos representativos",
         cause_description: "Impulsa equipos representativos académicos, deportivos y culturales.",
+        icon: "../assets/img/EquipoRepresentativos.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -100,6 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "93b67f3e-5f32-4f94-9df7-d93542980a58",
         cause_name: "Mejora de instalaciones",
         cause_description: "Fortalece laboratorios, aulas y espacios del campus.",
+        icon: "../assets/img/MejoraInstalaciones.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -113,6 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "93b67f3e-5f32-4f94-9df7-d93542980a58",
         cause_name: "Programas sociales",
         cause_description: "Proyectos de impacto social impulsados por el Tec.",
+        icon: "../assets/img/ProgramasSociales.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -127,6 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Apoyo para medicinas",
         cause_description: "Ayuda a cubrir medicinas para pacientes que lo necesitan.",
+        icon: "../assets/img/ApoyoParaMedicinas.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -139,6 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Cirugías",
         cause_description: "Contribuye a cirugías de alto impacto para pacientes.",
+        icon: "../assets/img/TSCirugias.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -151,6 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Medicamentos",
         cause_description: "Apoya la compra de medicamentos especializados.",
+        icon: "../assets/img/TSMedicamentos.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -163,6 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Consultas",
         cause_description: "Facilita consultas médicas a pacientes vulnerables.",
+        icon: "../assets/img/TSConsultas.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -175,6 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Instalaciones médicas",
         cause_description: "Mejora infraestructura y equipo médico.",
+        icon: "../assets/img/TSInstalacionesMedicas.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -187,6 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
         brand_id: "577c62b2-cfe5-4157-a386-f940b47a12d5",
         cause_name: "Campañas de impacto social",
         cause_description: "Campañas de prevención y salud para la comunidad.",
+        icon: "../assets/img/ProgramasSociales.png",
         created_at: null,
         is_placeholder: false,
         topics: [
@@ -234,7 +248,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // So we just render the valid causes. Flex-wrap in CSS handles the rest.
     
     validCauses.forEach(function (cause, i) {
-      var sprite = getIconSprite(i);
+      var iconSrc = cause.icon;
+      var iconAlt = "Ícono " + (cause.cause_name || "");
+
+      if (!iconSrc) {
+        var sprite = getIconSprite(i);
+        iconSrc = sprite.src;
+        iconAlt = sprite.alt;
+      }
       
       var wrapper = document.createElement("div");
       wrapper.className = "cause__icon";
@@ -242,8 +263,8 @@ document.addEventListener("DOMContentLoaded", function () {
       wrapper.setAttribute("title", cause.cause_name || "");
 
       var img = document.createElement("img");
-      img.src = sprite.src;
-      img.alt = sprite.alt;
+      img.src = iconSrc;
+      img.alt = iconAlt;
 
       // Tooltip handling using global tooltip to avoid overflow clipping
       wrapper.addEventListener("mouseenter", function () {
@@ -332,11 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
       brand: "TECSALUD",
       text:
         "Acerca servicios de salud de calidad a más familias, con diagnósticos y atención accesible.",
-      icons: [
-        { src: "../assets/beca.png", alt: "Ícono apoyo a pacientes" },
-        { src: "../assets/Instalacioines.png", alt: "Ícono infraestructura médica" },
-        { src: "../assets/equipo.png", alt: "Ícono comunidad de salud" }
-      ],
+      // icons: removed, now handled dynamically in brandMenuConfig
       image: {
         src: "../assets/Imagen tecsalud.png",
         alt: "Equipo médico en TecSalud"
@@ -347,11 +364,7 @@ document.addEventListener("DOMContentLoaded", function () {
       brand: "TEC DE MONTERREY",
       text:
         "Impulsa proyectos educativos e innovación para transformar México a través del conocimiento.",
-      icons: [
-        { src: "../assets/beca.png", alt: "Ícono becas académicas" },
-        { src: "../assets/Instalacioines.png", alt: "Ícono campus e infraestructura" },
-        { src: "../assets/equipo.png", alt: "Ícono comunidad estudiantil" }
-      ],
+      // icons: removed, now handled dynamically in brandMenuConfig
       image: {
         src: "../assets/Imagen tec de monterrey.png",
         alt: "Campus del Tecnológico de Monterrey"
@@ -362,11 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
       brand: "TECMILENIO",
       text:
         "Impulsa la educación positiva y el bienestar. Ayuda a que más personas encuentren su propósito de vida a través de becas de estudio.",
-      icons: [
-        { src: "../assets/beca.png", alt: "Ícono becas" },
-        { src: "../assets/Instalacioines.png", alt: "Ícono institución" },
-        { src: "../assets/equipo.png", alt: "Ícono comunidad" }
-      ],
+      // icons: removed, now handled dynamically in brandMenuConfig
       image: {
         src: "../assets/IMAGEN_TECMILENIO.jpg",
         alt: "Estudiantes Tecmilenio trabajando en laptop"
@@ -458,12 +467,8 @@ document.addEventListener("DOMContentLoaded", function () {
     brandEl.textContent = design.brand;
     textEl.textContent = design.text;
 
-    iconImgs.forEach(function (img, index) {
-      if (design.icons[index]) {
-        img.src = design.icons[index].src;
-        img.alt = design.icons[index].alt;
-      }
-    });
+    // Icon handling is now done in renderCauseIconsForBrand dynamic logic
+    // We do not update iconImgs here because they might refer to old DOM elements
 
     if (design.image && mediaImg) {
       mediaImg.src = design.image.src;

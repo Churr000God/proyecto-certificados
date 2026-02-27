@@ -202,11 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showUploadError('', false);
 
+        // Add loading animation class
+        uploadArea.classList.add('loading-logo');
+
         const reader = new FileReader();
         reader.onload = (e) => {
             state.hasCustomLogo = true;
             state.logoUrl = e.target.result;
-            updatePreview();
+            
+            // Wait a bit to show animation
+            setTimeout(() => {
+                uploadArea.classList.remove('loading-logo');
+                uploadArea.classList.add('logo-loaded');
+                updatePreview();
+            }, 800);
         };
         reader.readAsDataURL(file);
     }
@@ -255,10 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback
         if (themes.length === 0) {
             themes = [
-                { id: 'becas', name: 'Becas', icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', targetType: 'student', themeClass: 'cert-theme-becas', topics: [{ topic_id: 'beca-completa', topic_name: 'Beca Completa' }] },
-                { id: 'salud', name: 'Salud', icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', targetType: 'external_person', themeClass: 'cert-theme-salud', topics: [] },
-                { id: 'infraestructura', name: 'Infraestructura', icon: '🏗️', color: '#27ae60', logo: '../assets/Instalacioines.png', targetType: 'facility', themeClass: 'cert-theme-infraestructura', topics: [] },
-                { id: 'equipo', name: 'Equipo', icon: '💻', color: '#f39c12', logo: '../assets/equipo.png', targetType: 'group', themeClass: 'cert-theme-equipo', topics: [] }
+                { id: 'becas', name: 'Becas', icon: '../assets/img/Becas.png', color: '#5f9598', logo: '../assets/img/Becas.png', targetType: 'student', themeClass: 'cert-theme-becas', topics: [{ topic_id: 'beca-completa', topic_name: 'Beca Completa' }] },
+                { id: 'salud', name: 'Salud', icon: '../assets/img/ApoyoParaMedicinas.png', color: '#e74c3c', logo: '../assets/img/ApoyoParaMedicinas.png', targetType: 'external_person', themeClass: 'cert-theme-salud', topics: [] },
+                { id: 'infraestructura', name: 'Infraestructura', icon: '../assets/img/MejoraInstalaciones.png', color: '#27ae60', logo: '../assets/img/MejoraInstalaciones.png', targetType: 'facility', themeClass: 'cert-theme-infraestructura', topics: [] },
+                { id: 'equipo', name: 'Equipo', icon: '../assets/img/EquipoRepresentativos.png', color: '#f39c12', logo: '../assets/img/EquipoRepresentativos.png', targetType: 'group', themeClass: 'cert-theme-equipo', topics: [] },
+                { id: 'social', name: 'Programas Sociales', icon: '../assets/img/ProgramasSociales.png', color: '#9b59b6', logo: '../assets/img/ProgramasSociales.png', targetType: 'program', themeClass: 'cert-theme-program', topics: [] }
             ];
         }
 
@@ -269,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.className = 'topic-btn';
             btn.innerHTML = `
-                <span class="topic-icon">${theme.icon}</span>
+                <img src="${theme.icon}" alt="${theme.name}" class="topic-icon-img">
                 <span class="topic-name">${theme.name}</span>
             `;
             btn.onclick = () => selectTheme(theme);
@@ -294,31 +304,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Becas -> Student
         if (lowerName.includes('beca')) {
-            return { icon: '🎓', color: '#5f9598', logo: '../assets/beca.png', targetType: 'student_internal', themeClass: 'cert-theme-becas' };
+            return { icon: '../assets/img/Becas.png', color: '#5f9598', logo: '../assets/img/Becas.png', targetType: 'student_internal', themeClass: 'cert-theme-becas' };
         }
         
         // Salud / Medicina -> External Person
         if (lowerName.includes('salud') || lowerName.includes('medicina') || lowerName.includes('hospital') || lowerName.includes('cirugía') || lowerName.includes('prevención')) {
-            return { icon: '🏥', color: '#e74c3c', logo: '../assets/log tecsalud.png', targetType: 'student_external', themeClass: 'cert-theme-salud' };
+            return { icon: '../assets/img/ApoyoParaMedicinas.png', color: '#e74c3c', logo: '../assets/img/ApoyoParaMedicinas.png', targetType: 'student_external', themeClass: 'cert-theme-salud' };
         }
         
         // Infraestructura / Instalaciones -> Facility
         if (lowerName.includes('infraestructura') || lowerName.includes('instalaciones') || lowerName.includes('espacios') || lowerName.includes('laboratorio') || lowerName.includes('biblioteca')) {
-            return { icon: '🏗️', color: '#27ae60', logo: '../assets/Instalacioines.png', targetType: 'facility', themeClass: 'cert-theme-infraestructura' };
+            return { icon: '../assets/img/MejoraInstalaciones.png', color: '#27ae60', logo: '../assets/img/MejoraInstalaciones.png', targetType: 'facility', themeClass: 'cert-theme-infraestructura' };
         }
         
         // Equipo / Deporte / Cultura -> Group
         if (lowerName.includes('equipo') || lowerName.includes('deporte') || lowerName.includes('cultural') || lowerName.includes('borregos')) {
-            return { icon: '🏆', color: '#f39c12', logo: '../assets/equipo.png', targetType: 'group', themeClass: 'cert-theme-equipo' };
+            return { icon: '../assets/img/EquipoRepresentativos.png', color: '#f39c12', logo: '../assets/img/EquipoRepresentativos.png', targetType: 'group', themeClass: 'cert-theme-equipo' };
         }
         
         // Comunidad / Social / Voluntariado -> Program
         if (lowerName.includes('comunidad') || lowerName.includes('social') || lowerName.includes('voluntariado') || lowerName.includes('sustentabilidad')) {
-            return { icon: '🤝', color: '#9b59b6', logo: '../assets/equipo.png', targetType: 'program', themeClass: 'cert-theme-program' }; 
+            return { icon: '../assets/img/ProgramasSociales.png', color: '#9b59b6', logo: '../assets/img/ProgramasSociales.png', targetType: 'program', themeClass: 'cert-theme-program' }; 
         }
 
         // Default
-        return { icon: '✨', color: '#3498db', logo: '', targetType: 'program', themeClass: 'cert-theme-program' };
+        return { icon: '../assets/img/logo.png', color: '#3498db', logo: '../assets/img/logo.png', targetType: 'program', themeClass: 'cert-theme-program' };
     }
 
     function selectTheme(theme) {

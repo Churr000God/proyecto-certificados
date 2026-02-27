@@ -80,6 +80,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Usa los `brand_id` y `cause_id` reales provenientes de la base de datos.
   - Reconstruye los íconos según la institución seleccionada y activa el auto-scroll cuando es necesario.
 
+## [1.11.0] - 2026-02-27
+
+### Agregado
+- **Frontend (Donación Individual):** 
+  - Nuevos iconos de imagen (`assets/img/`) reemplazando los emojis para las causas en `donacion-individual.js`.
+  - Animación de carga y éxito ("Cargando..." -> "Logo cargado con éxito") al subir un logo personalizado.
+- **Frontend (Beneficio Fiscal):** 
+  - Nueva imagen de hero (`Gemini_Generated_Image_olt3m4olt3m4olt3.png`) implementada en `BF.css`.
+- **Frontend (Inscripción):**
+  - Lógica para recuperar datos completos de `localStorage` (`pending_transaction`) al finalizar el pago, asegurando que el backend reciba la información correcta para generar certificados y facturas.
+
+### Cambiado
+- **Estilos:** Actualizaciones en `style_donacioni.css` para soportar los nuevos iconos de imagen y las animaciones de carga.
+- **Backend:** Verificación de flujo de envío de correos (Certificado y Factura) utilizando los datos persistidos de la transacción.
+
 ## [1.10.0] - 2026-02-26
 
 ### Agregado

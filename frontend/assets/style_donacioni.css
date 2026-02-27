@@ -705,3 +705,80 @@ body {
     accent-color: var(--secondary-color);
     cursor: pointer;
 }
+
+/* =========================================
+   New Icon Styles & Upload Animation
+   ========================================= */
+
+/* Image Icons in Selection Buttons */
+.topic-icon-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.topic-btn:hover .topic-icon-img,
+.topic-btn.active .topic-icon-img {
+    transform: scale(1.15) translateY(-5px);
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+}
+
+/* Upload Area Animation */
+@keyframes pulse-border {
+    0% { border-color: #cbd5e0; background-color: #f8fafc; box-shadow: 0 0 0 0 rgba(95, 149, 152, 0.4); }
+    50% { border-color: var(--secondary-color); background-color: #f0fdfd; box-shadow: 0 0 0 10px rgba(95, 149, 152, 0); }
+    100% { border-color: #cbd5e0; background-color: #f8fafc; box-shadow: 0 0 0 0 rgba(95, 149, 152, 0); }
+}
+
+@keyframes success-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); border-color: #27ae60; }
+    100% { transform: scale(1); border-color: #27ae60; background-color: #f0fff4; }
+}
+
+.loading-logo {
+    animation: pulse-border 1.5s infinite;
+    cursor: wait;
+    opacity: 0.8;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading-logo::after {
+    content: 'Cargando...';
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.logo-loaded {
+    animation: success-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    border: 2px solid #27ae60 !important;
+    background-color: #f0fff4 !important;
+}
+
+.logo-loaded .upload-title {
+    color: #27ae60;
+}
+
+.logo-loaded::after {
+    content: '✅ Logo cargado con éxito';
+    display: block;
+    color: #27ae60;
+    font-weight: 700;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    animation: fade-in 0.4s ease forwards;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -288,6 +288,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (paymentSuccess) {
                 btnFinishPay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO TRANSACCIÓN...';
                 
+                // RECUPERAR DATOS DE LOCALSTORAGE PARA EL ENVÍO (Solicitado por usuario)
+                // Aseguramos que se usen los datos persistidos para generar los correos de certificado y factura
+                const storedPayload = localStorage.getItem('pending_transaction');
+                const finalPayload = storedPayload ? JSON.parse(storedPayload) : payload;
+
+                console.log('Enviando transacción con datos de LocalStorage:', finalPayload);
+
                 // 5. Enviar al Backend
                 const endpoint = donationData.type === 'corporate_bulk'
                     ? 'http://localhost:3000/api/donations/process-bulk'
@@ -298,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(finalPayload)
                 });
 
                 const result = await response.json();
