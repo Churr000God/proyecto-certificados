@@ -1,11 +1,21 @@
+:root {
+    --navbar-height: 76px;
+}
+
 .navbar {
     background-color: var(--primary-color);
     color: var(--white-color);
     padding: 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 100%;
     z-index: 1000;
+}
+
+#app-header {
+    min-height: var(--navbar-height);
 }
 
 .navbar-container {

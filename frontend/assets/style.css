@@ -561,6 +561,73 @@ main.hero-page {
   --bg2: #002a35;
 }
 
+@media (max-width: 900px) {
+  .cause__card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .cause__left {
+    clip-path: none;
+    -webkit-clip-path: none;
+    padding: 24px 18px;
+  }
+
+  .cause__brand {
+    font-size: clamp(2rem, 7vw, 2.7rem);
+  }
+
+  .cause__text {
+    font-size: 1.1rem;
+    max-width: 100%;
+  }
+
+  .cause__icons {
+    max-width: none;
+    justify-content: center;
+  }
+
+  .cause__media {
+    min-height: 260px;
+  }
+
+  .cause__media::after {
+    background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 60%);
+  }
+
+  .cause__logos {
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, minmax(74px, 1fr));
+    gap: 12px;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cause__left {
+    padding: 20px 14px;
+  }
+
+  .cause__icons {
+    gap: 10px;
+  }
+
+  .cause__icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .cause__icon img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .cause__logo {
+    width: 64px;
+    height: 64px;
+  }
+}
+
 /* ===== How Section (Cómo Funciona) ===== */
 .how {
   padding: 80px 20px;
